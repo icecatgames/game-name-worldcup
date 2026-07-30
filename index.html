@@ -162,13 +162,21 @@
   .winner-card .cdesc{color:var(--muted); font-size:14px; line-height:1.65; white-space:pre-wrap; word-break:keep-all}
 
   /* 통계 */
-  /* 통계 화면은 후보 이름(가장 긴 "Kingdom of Fighters (킹덤 오브 파이터즈)")이 한 줄에 들어오도록 패널을 넓게 */
+  /* 후보 이름은 셀 폭에 맞춰 JS(fitNameCells)가 글자 크기를 줄여 최대한 한 줄로 표시.
+     글자를 최소 크기(11px)까지 줄여도 안 들어오면 그때만 줄바꿈.
+     열 폭을 고정해 이름 칸의 가용 폭을 확정하려고 table-layout:fixed 사용 */
   #screenStats .panel{max-width:720px}
   #statsBody{overflow-x:auto}
+  #statsBody table{table-layout:fixed}
+  #statsBody th:nth-child(1),#statsBody td:nth-child(1){width:34px}
+  #statsBody th:nth-child(3),#statsBody td:nth-child(3),
+  #statsBody th:nth-child(4),#statsBody td:nth-child(4),
+  #statsBody th:nth-child(5),#statsBody td:nth-child(5){width:76px}
   table{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
   th,td{padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08)}
-  /* 후보 이름 칸: 줄바꿈 금지 → 항상 한 줄 */
-  #statsBody td:nth-child(2), #statsBody th:nth-child(2){white-space:nowrap}
+  #statsBody td.cand{white-space:nowrap}
+  /* 열 사이 세로 구분선 (마지막 열 제외) */
+  #statsBody th:not(:last-child), #statsBody td:not(:last-child){border-right:1px solid rgba(255,255,255,.08)}
   th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
   td.num,th.num{text-align:center}
   tbody tr.top{background:rgba(255,255,255,.03)}
@@ -430,6 +438,44 @@
     el.classList.add('open');
   }
 
+  // 후보 이름을 셀 폭에 맞춰 표시: 기본 14px에서 시작해 한 줄에 안 들어오면
+  // 최소 11px까지 0.5px씩 축소, 그래도 안 들어오면 글자를 기본 크기로 되돌리고 줄바꿈.
+  var _measSpan;
+  function fitNameCells(){
+    var cells = document.querySelectorAll('#statsBody td.cand');
+    if (!cells.length) return;
+    if (!_measSpan){
+      _measSpan = document.createElement('span');
+      _measSpan.style.cssText = 'position:absolute; visibility:hidden; white-space:nowrap; left:-9999px; top:-9999px; padding:0; margin:0; border:0';
+      document.body.appendChild(_measSpan);
+    }
+    var BASE = 14, MIN = 11;
+    for (var i=0;i<cells.length;i++){
+      var td = cells[i];
+      var text = td.getAttribute('data-name') || td.textContent || '';
+      var cs = getComputedStyle(td);
+      _measSpan.style.fontFamily = cs.fontFamily;
+      _measSpan.style.fontWeight = cs.fontWeight;
+      _measSpan.style.letterSpacing = cs.letterSpacing;
+      _measSpan.textContent = text;
+      var avail = td.clientWidth - 22;   // 좌우 패딩(10+10) + 여유 2px
+      var size = BASE;
+      _measSpan.style.fontSize = size + 'px';
+      while (_measSpan.offsetWidth > avail && size > MIN){
+        size -= 0.5; _measSpan.style.fontSize = size + 'px';
+      }
+      if (_measSpan.offsetWidth > avail){   // 최소 크기에서도 안 들어옴 → 줄바꿈
+        td.style.whiteSpace = 'normal';
+        td.style.wordBreak = 'keep-all';
+        td.style.fontSize = BASE + 'px';
+      } else {
+        td.style.whiteSpace = 'nowrap';
+        td.style.wordBreak = 'normal';
+        td.style.fontSize = size + 'px';
+      }
+    }
+  }
+
   function loadStats(){
     show('screenStats');
     var body = $('statsBody');
@@ -450,12 +496,13 @@
         prevRank = rank; prevKey = key;
         var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
         var rc = rank <= 3 ? ' rk' + rank : '';
-        return '<tr' + (rank <= 3 ? ' class="top"' : '') + '><td class="rk' + rc + '">' + rank + '</td><td>' + esc(c.name) + '</td>'
+        return '<tr' + (rank <= 3 ? ' class="top"' : '') + '><td class="rk' + rc + '">' + rank + '</td><td class="cand" data-name="' + esc(c.name) + '">' + esc(c.name) + '</td>'
           + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
       }).join('');
       body.innerHTML = '<table><thead><tr><th class="num">#</th><th>후보</th>'
         + '<th class="num">🥇우승</th><th class="num">🥈준우승</th><th class="num">우승률</th></tr></thead><tbody>'
         + rows + '</tbody></table>';
+      requestAnimationFrame(fitNameCells);   // 후보 이름 폭에 맞춰 글자 크기 조절(안 되면 줄바꿈)
     }).catch(function(){ body.innerHTML = '<div class="spinner">통계 로드 실패 (네트워크/URL 확인)</div>'; });
   }
 
@@ -474,6 +521,12 @@
     $('btnRefreshStats').addEventListener('click', loadStats);
     $('participantsBtn').addEventListener('click', toggleParticipants);
     $('btnStatsFromStart').addEventListener('click', loadStats);
+    // 창 크기가 바뀌면 통계 화면일 때 이름 글자 크기 다시 계산
+    var _rt;
+    window.addEventListener('resize', function(){
+      if (!$('screenStats').classList.contains('active')) return;
+      clearTimeout(_rt); _rt = setTimeout(fitNameCells, 150);
+    });
     refreshStartStatsBtn();
   }
   init();
