@@ -72,6 +72,9 @@
   .btn:active{transform:scale(.985)}
   .btn.ghost{background:rgba(255,255,255,.06); border:1px solid var(--glass-line); color:var(--text); box-shadow:none}
   .btn.ghost:hover{background:rgba(255,255,255,.11)}
+  /* 시작 화면 통계 버튼: 참여 기록이 있을 때만 노출 */
+  #btnStatsFromStart{display:none}
+  #btnStatsFromStart.show{display:inline-flex}
 
   /* 진행 표시 */
   .progress-wrap{text-align:center; margin-bottom:8px}
@@ -173,6 +176,19 @@
   .note{font-size:12.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.65}
   .stat-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px}
   .stat-top h2{font-size:20px; font-weight:800}
+  .info-chip{
+    display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+    background:var(--glass); border:1px solid var(--glass-line); color:var(--muted);
+    font-size:13px; font-weight:800; padding:7px 13px; border-radius:99px; transition:.15s;
+  }
+  .info-chip:hover{background:var(--glass-strong); color:var(--text); border-color:var(--accent)}
+  .info-i{font-size:13px; color:var(--accent3)}
+  .plist{display:none; flex-wrap:wrap; gap:8px; margin:12px 0 2px; padding:14px 16px;
+    background:var(--glass); border:1px solid var(--glass-line); border-radius:14px; max-height:220px; overflow:auto}
+  .plist.open{display:flex}
+  .plist .pchip{font-size:13px; font-weight:700; color:#dfe4ff; background:rgba(255,255,255,.06);
+    border:1px solid var(--glass-line); padding:6px 12px; border-radius:99px}
+  .plist .pempty{color:var(--muted); font-size:13px}
   .muted{color:var(--muted); font-size:13px}
   .spinner{text-align:center; padding:34px 10px; color:var(--muted); line-height:1.6}
 </style>
@@ -217,6 +233,7 @@
       <label class="fld">참가자 이름</label>
       <input id="participant" placeholder="이름을 입력하고 참여하세요" maxlength="20" autocomplete="off">
       <button class="btn" id="btnStart">이름 확인하고 참여하기</button>
+      <button class="btn ghost" id="btnStatsFromStart" style="margin-top:10px">전체 통계 보기</button>
       <div class="note" id="startNote">※ 같은 이름으로 다시 참여하면 마지막 결과로 갱신됩니다.</div>
     </div>
   </section>
@@ -253,8 +270,9 @@
     <div class="panel">
       <div class="stat-top">
         <h2>전체 통계</h2>
-        <span class="muted" id="totalGames"></span>
+        <button class="info-chip" id="participantsBtn" type="button"><span id="totalGames"></span><span class="info-i">ⓘ</span></button>
       </div>
+      <div id="participantList" class="plist"></div>
       <div id="statsBody"><div class="spinner">불러오는 중…</div></div>
       <div class="row">
         <button class="btn ghost" id="btnBackHome">처음으로</button>
@@ -306,6 +324,12 @@
 
   var screens = ['screenStart','screenGame','screenResult','screenStats'];
   function show(id){ screens.forEach(function(s){ $(s).classList.toggle('active', s===id); }); window.scrollTo(0,0); }
+
+  // 참여 기록(기기 저장): 한 번이라도 참여했으면 시작 화면에도 통계 버튼 노출
+  var PLAYED_KEY = 'wc_played';
+  function hasPlayed(){ try{ return !!localStorage.getItem(PLAYED_KEY); }catch(e){ return false; } }
+  function markPlayed(){ try{ localStorage.setItem(PLAYED_KEY, '1'); }catch(e){} }
+  function refreshStartStatsBtn(){ if (hasPlayed()) $('btnStatsFromStart').classList.add('show'); }
 
   // ---------- 게임 상태 (부전승 지원, 12강 등 2의 거듭제곱이 아닌 인원도 처리) ----------
   var state = {};
@@ -374,6 +398,8 @@
     r.querySelector('.cname').innerHTML = nameHtml(state.runnerup.name);
     r.querySelector('.cdesc').textContent = state.runnerup.desc || '';
     $('submitNote').textContent = '';
+    markPlayed();               // 참여 기록 저장
+    refreshStartStatsBtn();     // 시작 화면 통계 버튼 노출
     show('screenResult');
 
     if (CONFIG.apiUrl){
@@ -390,14 +416,25 @@
     }
   }
 
+  var lastParticipants = [];
+  function toggleParticipants(){
+    var el = $('participantList');
+    if (el.classList.contains('open')){ el.classList.remove('open'); return; }
+    if (!lastParticipants.length){ el.innerHTML = '<span class="pempty">아직 참여자가 없습니다.</span>'; }
+    else { el.innerHTML = lastParticipants.map(function(n){ return '<span class="pchip">' + esc(n) + '</span>'; }).join(''); }
+    el.classList.add('open');
+  }
+
   function loadStats(){
     show('screenStats');
     var body = $('statsBody');
     $('totalGames').textContent = '';
+    $('participantList').classList.remove('open');
     body.innerHTML = '<div class="spinner">불러오는 중…</div>';
     if (!CONFIG.apiUrl){ body.innerHTML = '<div class="spinner">apiUrl이 설정되지 않았습니다.</div>'; return; }
     jsonp({action:'stats'}).then(function(res){
       if (!res || !res.ok){ body.innerHTML = '<div class="spinner">통계 로드 실패</div>'; return; }
+      lastParticipants = res.participantNames || [];
       $('totalGames').textContent = '참여 인원 ' + res.totalGames + '명';
       if (!res.candidates.length){ body.innerHTML = '<div class="spinner">아직 집계된 결과가 없습니다.</div>'; return; }
       // 올림픽 메달 방식: 우승(금)→준우승(은) 순위, 금·은 동점이면 공동 순위(다음 순위는 건너뜀)
@@ -430,6 +467,9 @@
     $('btnBackHome').addEventListener('click', function(){ show('screenStart'); });
     $('btnStatsFromResult').addEventListener('click', loadStats);
     $('btnRefreshStats').addEventListener('click', loadStats);
+    $('participantsBtn').addEventListener('click', toggleParticipants);
+    $('btnStatsFromStart').addEventListener('click', loadStats);
+    refreshStartStatsBtn();
   }
   init();
 })();
