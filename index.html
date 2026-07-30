@@ -162,8 +162,13 @@
   .winner-card .cdesc{color:var(--muted); font-size:14px; line-height:1.65; white-space:pre-wrap; word-break:keep-all}
 
   /* 통계 */
+  /* 통계 화면은 후보 이름(가장 긴 "Kingdom of Fighters (킹덤 오브 파이터즈)")이 한 줄에 들어오도록 패널을 넓게 */
+  #screenStats .panel{max-width:720px}
+  #statsBody{overflow-x:auto}
   table{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
   th,td{padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08)}
+  /* 후보 이름 칸: 줄바꿈 금지 → 항상 한 줄 */
+  #statsBody td:nth-child(2), #statsBody th:nth-child(2){white-space:nowrap}
   th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
   td.num,th.num{text-align:center}
   tbody tr.top{background:rgba(255,255,255,.03)}
