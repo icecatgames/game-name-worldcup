@@ -163,11 +163,11 @@
   th,td{padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08)}
   th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
   td.num,th.num{text-align:center}
-  tbody tr:nth-child(-n+3){background:rgba(255,255,255,.03)}
+  tbody tr.top{background:rgba(255,255,255,.03)}
   tr .rk{font-weight:900; color:var(--muted)}
-  tbody tr:nth-child(1) .rk{color:var(--gold)}
-  tbody tr:nth-child(2) .rk{color:var(--silver)}
-  tbody tr:nth-child(3) .rk{color:#e0a06a}
+  .rk.rk1{color:var(--gold)}
+  .rk.rk2{color:var(--silver)}
+  .rk.rk3{color:#e0a06a}
   .row{display:flex; gap:10px; margin-top:20px}
   .row .btn{margin-top:0}
   .note{font-size:12.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.65}
@@ -400,9 +400,15 @@
       if (!res || !res.ok){ body.innerHTML = '<div class="spinner">통계 로드 실패</div>'; return; }
       $('totalGames').textContent = '참여 인원 ' + res.totalGames + '명';
       if (!res.candidates.length){ body.innerHTML = '<div class="spinner">아직 집계된 결과가 없습니다.</div>'; return; }
+      // 올림픽 메달 방식: 우승(금)→준우승(은) 순위, 금·은 동점이면 공동 순위(다음 순위는 건너뜀)
+      var prevRank = 0, prevKey = null;
       var rows = res.candidates.map(function(c, i){
+        var key = c.champion + '|' + c.runnerup;
+        var rank = (key === prevKey) ? prevRank : (i + 1);
+        prevRank = rank; prevKey = key;
         var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
-        return '<tr><td class="rk">'+(i+1)+'</td><td>'+esc(c.name)+'</td>'
+        var rc = rank <= 3 ? ' rk' + rank : '';
+        return '<tr' + (rank <= 3 ? ' class="top"' : '') + '><td class="rk' + rc + '">' + rank + '</td><td>' + esc(c.name) + '</td>'
           + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
       }).join('');
       body.innerHTML = '<table><thead><tr><th class="num">#</th><th>후보</th>'
