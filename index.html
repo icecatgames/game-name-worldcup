@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이상형 월드컵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1f; --text:#eef1ff; --muted:#a3adce;
+    --accent:#7c8cff; --accent2:#ff6ea6; --accent3:#5ad2ff;
+    --gold:#ffd35c; --silver:#cfd6e6;
+    --glass:rgba(255,255,255,.055); --glass-strong:rgba(255,255,255,.09);
+    --glass-line:rgba(255,255,255,.12);
+    --shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:"Pretendard","Malgun Gothic","Segoe UI",system-ui,sans-serif;
+    color:var(--text); min-height:100vh; padding:32px 16px 56px;
+    display:flex; align-items:flex-start; justify-content:center;
+    background:var(--bg); position:relative; overflow-x:hidden;
+  }
+  /* 오로라 배경 */
+  body::before{
+    content:""; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(38vw 38vw at 15% 8%, rgba(124,140,255,.38), transparent 60%),
+      radial-gradient(42vw 42vw at 88% 4%, rgba(255,110,166,.30), transparent 60%),
+      radial-gradient(46vw 46vw at 80% 92%, rgba(90,210,255,.22), transparent 62%),
+      radial-gradient(40vw 40vw at 10% 96%, rgba(150,110,255,.24), transparent 62%);
+    filter:blur(8px);
+  }
+  .wrap{width:100%; max-width:1120px; position:relative}
+  .title{
+    text-align:center; font-size:clamp(26px,5vw,44px); font-weight:900;
+    letter-spacing:-.8px; margin-bottom:8px; line-height:1.15;
+    background:linear-gradient(92deg,#b8c2ff,#fff 40%,#ffc4dd 78%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 30px rgba(124,140,255,.25);
+  }
+  .subtitle{text-align:center; color:var(--muted); margin-bottom:28px; font-size:14.5px; letter-spacing:.2px}
+  .screen{display:none}
+  .screen.active{display:block; animation:fade .3s ease}
+  @keyframes fade{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+
+  /* 글라스 패널 (시작/결과/통계) — 좁게 가운데 정렬 */
+  .panel{
+    max-width:560px; margin:0 auto;
+    background:var(--glass); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%);
+    border:1px solid var(--glass-line); border-radius:24px; padding:30px 28px;
+    box-shadow:var(--shadow);
+  }
+  label.fld{display:block; font-size:12.5px; color:var(--muted); margin:8px 2px 8px; font-weight:600; letter-spacing:.3px}
+  input{
+    width:100%; padding:15px 16px; border-radius:14px; border:1px solid var(--glass-line);
+    background:rgba(255,255,255,.05); color:var(--text); font-size:16px; outline:none; transition:.18s;
+  }
+  input::placeholder{color:#7b84a6}
+  input:focus{border-color:var(--accent); box-shadow:0 0 0 4px rgba(124,140,255,.18); background:rgba(255,255,255,.08)}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:15px; margin-top:16px; border:none; border-radius:14px;
+    font-size:16px; font-weight:800; cursor:pointer; color:#fff; letter-spacing:.2px;
+    background:linear-gradient(92deg,var(--accent),#9a7bff 55%,var(--accent2));
+    box-shadow:0 10px 26px rgba(124,140,255,.35); transition:transform .08s, filter .2s, box-shadow .2s;
+  }
+  .btn:hover{filter:brightness(1.07); box-shadow:0 14px 32px rgba(124,140,255,.45)}
+  .btn:active{transform:scale(.985)}
+  .btn.ghost{background:rgba(255,255,255,.06); border:1px solid var(--glass-line); color:var(--text); box-shadow:none}
+  .btn.ghost:hover{background:rgba(255,255,255,.11)}
+
+  /* 진행 표시 */
+  .progress{
+    display:inline-flex; align-items:center; gap:8px; margin:0 0 14px;
+    padding:8px 16px; border-radius:99px; font-size:13.5px; font-weight:700; color:#dfe4ff;
+    background:var(--glass); border:1px solid var(--glass-line);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  }
+  .progress-wrap{text-align:center}
+  .bar{height:8px; max-width:520px; margin:0 auto 28px; background:rgba(255,255,255,.08); border-radius:99px; overflow:hidden}
+  .bar > i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent3),var(--accent),var(--accent2)); border-radius:99px; transition:width .35s ease}
+
+  /* 대결 카드 */
+  .match{display:grid; grid-template-columns:1fr; gap:16px; align-items:stretch}
+  @media(min-width:640px){ .match{grid-template-columns:1fr 64px 1fr; gap:12px} }
+  .vs{display:flex; align-items:center; justify-content:center}
+  .vs span{
+    width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:17px; letter-spacing:1px; color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:3px solid rgba(255,255,255,.16); box-shadow:0 10px 28px rgba(124,140,255,.5);
+  }
+  .choice{
+    position:relative; overflow:hidden; cursor:pointer; text-align:center;
+    background:var(--glass); backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid var(--glass-line); border-radius:24px;
+    display:flex; flex-direction:column; min-height:300px;
+    box-shadow:var(--shadow); transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .choice::before{ /* 상단 하이라이트 라인 */
+    content:""; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent); opacity:.6;
+  }
+  .choice:hover{transform:translateY(-6px); border-color:rgba(124,140,255,.6); box-shadow:0 26px 60px rgba(124,140,255,.35)}
+  .choice:active{transform:translateY(-2px)}
+  /* 제목 영역 */
+  .choice .cname{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center;
+    padding:30px 20px; min-height:138px;
+    background:var(--glass-strong); border-bottom:1px solid var(--glass-line);
+  }
+  /* 제목: 설명과 다른 전용 폰트 + 큰 크기 + 그라데이션 컬러, 한 줄 유지 */
+  .cname-main{
+    font-family:"Poppins","Pretendard","Malgun Gothic",sans-serif;
+    font-size:clamp(20px,3.2vw,33px); font-weight:800; letter-spacing:-.5px; line-height:1.08;
+    white-space:nowrap;
+    background:linear-gradient(92deg,#b7c0ff,#ffffff 46%,#ffbcdf);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .cname-sub{
+    font-family:"Black Han Sans","Pretendard","Malgun Gothic",sans-serif;
+    font-size:clamp(15px,2vw,21px); font-weight:400; letter-spacing:.6px; color:var(--accent3);
+    white-space:nowrap;
+  }
+  /* 설명 영역 */
+  .choice .cdesc{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:26px 30px; font-size:15px; color:var(--muted); line-height:1.75;
+    white-space:pre-wrap; word-break:keep-all;
+  }
+  .choice.picked{border-color:var(--accent2); box-shadow:0 0 0 3px rgba(255,110,166,.35), var(--shadow); animation:pop .3s}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+
+  /* 결과 화면 */
+  .result-crown{text-align:center; font-size:40px; margin-bottom:10px; filter:drop-shadow(0 6px 16px rgba(255,211,92,.5))}
+  .rank-badge{display:inline-block; font-size:12.5px; font-weight:800; padding:5px 14px; border-radius:99px; margin-bottom:10px; letter-spacing:.4px}
+  .rank1{background:rgba(255,211,92,.16); color:var(--gold); border:1px solid rgba(255,211,92,.45)}
+  .rank2{background:rgba(207,214,230,.12); color:var(--silver); border:1px solid rgba(207,214,230,.35)}
+  .winner-card{
+    background:var(--glass-strong); border:1px solid var(--glass-line); border-radius:18px;
+    padding:24px; text-align:center; margin-bottom:14px;
+  }
+  .winner-card.gold{border-color:rgba(255,211,92,.45); box-shadow:0 0 0 1px rgba(255,211,92,.2), 0 14px 36px rgba(255,211,92,.14)}
+  .winner-card .cname{display:flex; flex-direction:column; align-items:center; gap:4px; margin-bottom:10px}
+  .winner-card .cname-main{font-size:23px}
+  .winner-card .cname-sub{font-size:13.5px}
+  .winner-card .cdesc{color:var(--muted); font-size:14px; line-height:1.65; white-space:pre-wrap; word-break:keep-all}
+
+  /* 통계 */
+  table{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
+  th,td{padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08)}
+  th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
+  td.num,th.num{text-align:center}
+  tbody tr:nth-child(-n+3){background:rgba(255,255,255,.03)}
+  tr .rk{font-weight:900; color:var(--muted)}
+  tbody tr:nth-child(1) .rk{color:var(--gold)}
+  tbody tr:nth-child(2) .rk{color:var(--silver)}
+  tbody tr:nth-child(3) .rk{color:#e0a06a}
+  .row{display:flex; gap:10px; margin-top:20px}
+  .row .btn{margin-top:0}
+  .note{font-size:12.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.65}
+  .stat-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px}
+  .stat-top h2{font-size:20px; font-weight:800}
+  .muted{color:var(--muted); font-size:13px}
+  .spinner{text-align:center; padding:34px 10px; color:var(--muted); line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 설정 영역 (여기만 수정하면 됩니다) ================= -->
+  <script>
+  const CONFIG = {
+    title: "게임 이름 이상형 월드컵",
+    subtitle: "12강 · 가장 마음에 드는 게임 이름을 골라주세요",
+
+    // ★ Apps Script 배포 후 나온 웹 앱 URL(.../exec)을 여기에 붙여넣으세요.
+    apiUrl: "https://script.google.com/macros/s/AKfycbwWXPabX2fYyQtpOeG9ILTBFOZsx5_oYRDyCSNoBkmCNQx18h48AXrcIS7kwlOimyvv/exec",
+
+    // 후보 12명 : 이름 + 설명. (12강 고정)
+    candidates: [
+      { name: "Kings Reign (킹스레인)", desc: "왕의 통치·군림을 뜻함. 왕국을 다스리며 세력을 넓혀가는 군주 판타지를 직관적으로 전달." },
+      { name: "Last Elysium (라스트 엘리시움)", desc: "엘리시움은 신화 속 낙원. 몰락한 세계에서 마지막 안식처를 지켜낸다는 생존·종말 서사를 담음." },
+      { name: "Wartopia (워토피아)", desc: "War(전쟁) + Utopia(이상향)의 합성어. 끝없는 전쟁 속에서 이상향을 건설한다는 아이러니한 매력을 노림." },
+      { name: "Grow Kingdom (왕국 키우기)", desc: "작은 영지에서 시작해 왕국을 키워가는 성장·경영의 재미를 쉬운 말로 풀어낸 이름." },
+      { name: "King Hold (킹홀드)", desc: "왕좌를 지켜낸다(Hold)는 의미. 방어·수성 콘텐츠의 긴장감을 강조." },
+      { name: "Kingdom of Fighters (킹덤 오브 파이터즈)", desc: "왕국을 두고 다투는 수많은 전사들. 캐릭터·전투 중심의 경쟁 콘텐츠를 부각. 유명 격투게임 'The King of Fighters'를 연상시키는 언어유희로 친숙함을 노림." },
+      { name: "Epic of Kingdoms (에픽 오브 킹덤즈)", desc: "여러 왕국이 얽힌 대서사(Epic)를 표방. 방대한 세계관과 세력 다툼의 스케일을 강조." },
+      { name: "War Crown (워 크라운)", desc: "전쟁(War)으로 왕관(Crown)을 쟁취한다는 뜻. 정복·패권 경쟁을 상징." },
+      { name: "World King (월드킹)", desc: "전 세계 서버를 제패하는 최강의 왕. 글로벌 경쟁·랭킹 지향을 직관적으로 표현." },
+      { name: "Legend of Skyna (레전드 오브 스카이나)", desc: "스카이나라는 고유 세계관 이름을 내세운 전설담. 브랜드 고유성과 판타지 분위기를 확보." },
+      { name: "Age of Kingdoms (에이지 오브 킹덤즈)", desc: "여러 왕국이 흥망을 거듭하는 하나의 시대(Age)를 표방. 세력 다툼의 스케일과 문명 건설·발전의 장대함을 강조." },
+      { name: "King Fall (킹폴)", desc: "왕의 몰락(Fall). 왕좌를 둘러싼 흥망성쇠 드라마와 하극상의 긴장감을 담음." }
+    ]
+  };
+  </script>
+  <!-- ================================================================== -->
+
+  <div class="title" id="pageTitle">이상형 월드컵</div>
+  <div class="subtitle" id="pageSubtitle"></div>
+
+  <!-- 시작 화면 -->
+  <section class="screen active" id="screenStart">
+    <div class="panel">
+      <label class="fld">참가자 이름</label>
+      <input id="participant" placeholder="이름을 입력하고 참여하세요" maxlength="20" autocomplete="off">
+      <button class="btn" id="btnStart">이름 확인하고 참여하기</button>
+      <div class="note" id="startNote">※ 같은 이름으로 다시 참여하면 마지막 결과로 갱신됩니다.</div>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section class="screen" id="screenGame">
+    <div class="progress-wrap"><span class="progress" id="progressLabel"></span></div>
+    <div class="bar"><i id="progressBar" style="width:0%"></i></div>
+    <div class="match">
+      <div class="choice" id="choiceA"><div class="cname"></div><div class="cdesc"></div></div>
+      <div class="vs"><span>VS</span></div>
+      <div class="choice" id="choiceB"><div class="cname"></div><div class="cdesc"></div></div>
+    </div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section class="screen" id="screenResult">
+    <div class="panel">
+      <div class="result-crown">🏆</div>
+      <div style="text-align:center"><span class="rank-badge rank1">우승 · 1위</span></div>
+      <div class="winner-card gold" id="championCard"><div class="cname"></div><div class="cdesc"></div></div>
+      <div style="text-align:center"><span class="rank-badge rank2">준우승 · 2위</span></div>
+      <div class="winner-card" id="runnerCard"><div class="cname"></div><div class="cdesc"></div></div>
+      <div class="note" id="submitNote"></div>
+      <div class="row">
+        <button class="btn ghost" id="btnRestart">다시 참여하기</button>
+        <button class="btn" id="btnStatsFromResult">전체 통계 보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 통계 화면 -->
+  <section class="screen" id="screenStats">
+    <div class="panel">
+      <div class="stat-top">
+        <h2>전체 통계</h2>
+        <span class="muted" id="totalGames"></span>
+      </div>
+      <div id="statsBody"><div class="spinner">불러오는 중…</div></div>
+      <div class="row">
+        <button class="btn ghost" id="btnBackHome">처음으로</button>
+        <button class="btn" id="btnRefreshStats">새로고침</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  // "English (한글)" → 영문은 크게, 괄호 안 한글은 작게 (문자 가독성 위계)
+  function nameHtml(name){
+    var m = String(name==null?'':name).match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+    if (m && m[1].trim()) return '<span class="cname-main">'+esc(m[1].trim())+'</span><span class="cname-sub">'+esc(m[2].trim())+'</span>';
+    return '<span class="cname-main">'+esc(String(name==null?'':name).trim())+'</span>';
+  }
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function nextPow2(n){ var p=1; while(p<n) p*=2; return p; }
+  function roundName(alive){
+    if (alive===2) return '결승';
+    if (alive===4) return '준결승';
+    return alive + '강';
+  }
+
+  // ---------- JSONP (CORS 없이 Apps Script 호출) ----------
+  function jsonp(params){
+    return new Promise(function(resolve,reject){
+      if (!CONFIG.apiUrl){ reject(new Error('no-api')); return; }
+      var cb = 'cb_' + Math.random().toString(36).slice(2);
+      var s = document.createElement('script');
+      var timer = setTimeout(function(){ cleanup(); reject(new Error('timeout')); }, 15000);
+      function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); clearTimeout(timer); }
+      window[cb] = function(data){ cleanup(); resolve(data); };
+      s.onerror = function(){ cleanup(); reject(new Error('network')); };
+      var q = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+      s.src = CONFIG.apiUrl + '?' + q + '&callback=' + cb;
+      document.body.appendChild(s);
+    });
+  }
+
+  var screens = ['screenStart','screenGame','screenResult','screenStats'];
+  function show(id){ screens.forEach(function(s){ $(s).classList.toggle('active', s===id); }); window.scrollTo(0,0); }
+
+  // ---------- 게임 상태 (부전승 지원, 12강 등 2의 거듭제곱이 아닌 인원도 처리) ----------
+  var state = {};
+
+  function startTournament(){
+    var name = $('participant').value.trim();
+    if (!name){ $('participant').focus(); $('startNote').textContent = '참가자 이름을 입력해주세요.'; return; }
+    var pool = shuffle(CONFIG.candidates);
+    var N = pool.length;
+    if (N < 2){ $('startNote').textContent = '후보가 최소 2명 필요합니다.'; return; }
+    var byes = nextPow2(N) - N;              // 부전승 인원
+    state = {
+      participant: name,
+      selectedCount: N,
+      round: pool.slice(byes),               // 1라운드에서 실제로 맞붙는 인원
+      next:  pool.slice(0, byes),            // 부전승으로 다음 라운드 자동 진출
+      idx: 0,
+      aliveAtRoundStart: N,                  // 이번 라운드 시작 시 생존 인원(라벨용)
+      matchesPlayed: 0,
+      totalMatches: N - 1,                   // 싱글 엘리미네이션 총 경기 수
+      champion: null, runnerup: null
+    };
+    show('screenGame');
+    renderMatch();
+  }
+
+  function renderMatch(){
+    var a = state.round[state.idx], b = state.round[state.idx+1];
+    var A = $('choiceA'), B = $('choiceB');
+    A.classList.remove('picked'); B.classList.remove('picked');
+    A.querySelector('.cname').innerHTML = nameHtml(a.name);
+    A.querySelector('.cdesc').textContent = a.desc || '';
+    B.querySelector('.cname').innerHTML = nameHtml(b.name);
+    B.querySelector('.cdesc').textContent = b.desc || '';
+    var matchCount = state.round.length/2;
+    var matchNo = (state.idx/2)+1;
+    $('progressLabel').textContent = roundName(state.aliveAtRoundStart) + '  ·  ' + matchNo + ' / ' + matchCount;
+    $('progressBar').style.width = Math.round(state.matchesPlayed/state.totalMatches*100) + '%';
+  }
+
+  function pick(side){
+    var a = state.round[state.idx], b = state.round[state.idx+1];
+    var winner = (side==='a') ? a : b;
+    var loser  = (side==='a') ? b : a;
+    (side==='a' ? $('choiceA') : $('choiceB')).classList.add('picked');
+    state.matchesPlayed++;
+
+    if (state.round.length === 2 && state.next.length === 0){ // 결승 (대기 인원 없음)
+      state.champion = winner; state.runnerup = loser;
+      setTimeout(finish, 320); return;
+    }
+    state.next.push(winner);
+    state.idx += 2;
+    if (state.idx >= state.round.length){ // 라운드 종료 → 다음 라운드
+      state.round = state.next; state.next = []; state.idx = 0;
+      state.aliveAtRoundStart = state.round.length;
+    }
+    setTimeout(renderMatch, 320);
+  }
+
+  function finish(){
+    var c = $('championCard'), r = $('runnerCard');
+    c.querySelector('.cname').innerHTML = nameHtml(state.champion.name);
+    c.querySelector('.cdesc').textContent = state.champion.desc || '';
+    r.querySelector('.cname').innerHTML = nameHtml(state.runnerup.name);
+    r.querySelector('.cdesc').textContent = state.runnerup.desc || '';
+    $('submitNote').textContent = '';
+    show('screenResult');
+
+    if (CONFIG.apiUrl){
+      $('submitNote').textContent = '결과 저장 중…';
+      jsonp({
+        action:'submit', participant: state.participant,
+        champion: state.champion.name, runnerup: state.runnerup.name,
+        round: state.selectedCount, title: CONFIG.title
+      }).then(function(res){
+        $('submitNote').textContent = (res && res.ok) ? '결과가 전체 통계에 반영되었습니다 ✓' : '저장 실패: ' + ((res&&res.error)||'오류');
+      }).catch(function(){ $('submitNote').textContent = '결과 저장 실패 (네트워크/URL 확인).'; });
+    } else {
+      $('submitNote').textContent = '※ apiUrl 미설정: 통계는 저장되지 않습니다.';
+    }
+  }
+
+  function loadStats(){
+    show('screenStats');
+    var body = $('statsBody');
+    $('totalGames').textContent = '';
+    body.innerHTML = '<div class="spinner">불러오는 중…</div>';
+    if (!CONFIG.apiUrl){ body.innerHTML = '<div class="spinner">apiUrl이 설정되지 않았습니다.</div>'; return; }
+    jsonp({action:'stats'}).then(function(res){
+      if (!res || !res.ok){ body.innerHTML = '<div class="spinner">통계 로드 실패</div>'; return; }
+      $('totalGames').textContent = '참여 인원 ' + res.totalGames + '명';
+      if (!res.candidates.length){ body.innerHTML = '<div class="spinner">아직 집계된 결과가 없습니다.</div>'; return; }
+      var rows = res.candidates.map(function(c, i){
+        var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
+        return '<tr><td class="rk">'+(i+1)+'</td><td>'+esc(c.name)+'</td>'
+          + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
+      }).join('');
+      body.innerHTML = '<table><thead><tr><th class="num">#</th><th>후보</th>'
+        + '<th class="num">🥇우승</th><th class="num">🥈준우승</th><th class="num">우승률</th></tr></thead><tbody>'
+        + rows + '</tbody></table>';
+    }).catch(function(){ body.innerHTML = '<div class="spinner">통계 로드 실패 (네트워크/URL 확인)</div>'; });
+  }
+
+  function init(){
+    $('pageTitle').textContent = CONFIG.title;
+    document.title = CONFIG.title;
+    $('pageSubtitle').textContent = CONFIG.subtitle || '';
+    $('btnStart').addEventListener('click', startTournament);
+    $('participant').addEventListener('keydown', function(e){ if(e.key==='Enter') startTournament(); });
+    $('choiceA').addEventListener('click', function(){ pick('a'); });
+    $('choiceB').addEventListener('click', function(){ pick('b'); });
+    // 다시 참여: 이름을 남겨두어 같은 이름으로 재참여 시 마지막 결과로 갱신되게 함
+    $('btnRestart').addEventListener('click', function(){ show('screenStart'); $('participant').focus(); });
+    $('btnBackHome').addEventListener('click', function(){ show('screenStart'); });
+    $('btnStatsFromResult').addEventListener('click', loadStats);
+    $('btnRefreshStats').addEventListener('click', loadStats);
+  }
+  init();
+})();
+</script>
+</body>
+</html>
