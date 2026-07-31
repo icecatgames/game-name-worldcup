@@ -79,13 +79,40 @@
   /* 진행 표시 */
   .progress-wrap{text-align:center; margin-bottom:8px}
   .progress{ display:inline-flex; flex-direction:column; align-items:center; gap:2px }
+  /* 라운드가 올라갈수록 글씨가 커지고 색이 바뀌며 카드가 업그레이드된다.
+     #screenGame[data-round]에 라운드별 변수(색 --rc/--rc2, 글씨크기 --rsize, 카드 --rrad/--rbar*/--rcard/--rglow)를
+     정의하면 아래 .round-big·.choice 가 그 변수를 함께 사용한다. */
+  #screenGame{
+    --rc:var(--accent3); --rc2:var(--accent2);
+    --rsize:clamp(32px,5.4vw,50px); --rrad:24px; --rbarH:3px; --rbarO:.6;
+    --rcard:var(--shadow); --rglow:0 26px 60px rgba(124,140,255,.35); --rshadow:rgba(124,140,255,.4);
+  }
+  #screenGame[data-round="12강"]{ --rc:#7f9bff; --rc2:#bccbff; --rsize:clamp(30px,4.8vw,42px); --rrad:20px; --rbarH:3px; --rbarO:.5;
+    --rcard:var(--shadow); --rglow:0 22px 50px rgba(127,155,255,.32); --rshadow:rgba(127,155,255,.38); }
+  #screenGame[data-round="8강"]{ --rc:#4fd0e6; --rc2:#bdf3fb; --rsize:clamp(34px,5.6vw,50px); --rrad:22px; --rbarH:4px; --rbarO:.7;
+    --rcard:var(--shadow),0 0 0 1px rgba(79,208,230,.20); --rglow:0 24px 56px rgba(79,208,230,.40); --rshadow:rgba(79,208,230,.45); }
+  #screenGame[data-round="4강"]{ --rc:#5fe0a3; --rc2:#c9ffe6; --rsize:clamp(38px,6.4vw,58px); --rrad:24px; --rbarH:5px; --rbarO:.8;
+    --rcard:var(--shadow),0 0 0 1px rgba(95,224,163,.24),0 0 24px rgba(95,224,163,.12); --rglow:0 24px 58px rgba(95,224,163,.44); --rshadow:rgba(95,224,163,.5); }
+  #screenGame[data-round="준결승"]{ --rc:#b58cff; --rc2:#e6d8ff; --rsize:clamp(42px,7.2vw,66px); --rrad:26px; --rbarH:6px; --rbarO:.9;
+    --rcard:var(--shadow),0 0 0 1.5px rgba(181,140,255,.32),0 0 32px rgba(181,140,255,.18); --rglow:0 26px 60px rgba(181,140,255,.48); --rshadow:rgba(181,140,255,.55); }
+  #screenGame[data-round="결승"]{ --rc:#ffce54; --rc2:#fff0bf; --rsize:clamp(48px,8.4vw,78px); --rrad:28px; --rbarH:7px; --rbarO:1;
+    --rcard:var(--shadow),0 0 0 2px rgba(255,206,84,.44),0 0 46px rgba(255,206,84,.26); --rglow:0 28px 66px rgba(255,206,84,.52); --rshadow:rgba(255,206,84,.6); }
+
   .round-big{
     font-family:"Gothic A1","Pretendard","Malgun Gothic",sans-serif;
-    font-size:clamp(34px,5.6vw,52px); font-weight:900; line-height:1.02; letter-spacing:-1.5px;
-    background:linear-gradient(92deg,var(--accent3),#ffffff 52%,var(--accent2));
+    font-size:var(--rsize); font-weight:900; line-height:1.3; letter-spacing:-1.5px;
+    padding:.16em .12em .05em;                 /* 윗쪽 글자 잘림 방지 */
+    background:linear-gradient(92deg,var(--rc),#ffffff 54%,var(--rc2));
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 4px 24px rgba(124,140,255,.4));
+    filter:drop-shadow(0 4px 22px var(--rshadow));
+    transition:font-size .32s ease;            /* 라운드 넘어갈 때 커지는 연출 */
   }
+  /* 결승엔 왕관 장식 (round-big 은 background-clip:text 라 이모지가 안 보이므로 .progress 에 붙임) */
+  #screenGame[data-round="결승"] .progress::before{
+    content:"👑"; font-size:clamp(24px,4vw,34px); line-height:1; margin-bottom:2px;
+    filter:drop-shadow(0 3px 10px rgba(255,206,84,.6)); animation:crownPop .4s ease;
+  }
+  @keyframes crownPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
   .round-count{
     font-size:clamp(16px,1.7vw,20px); font-weight:800; color:#cdd6f5; letter-spacing:2.5px;
     padding:4px 14px; border-radius:99px; background:var(--glass); border:1px solid var(--glass-line); margin-top:2px;
@@ -107,15 +134,17 @@
     position:relative; overflow:hidden; cursor:pointer; text-align:center;
     container-type:inline-size;
     background:var(--glass); backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
-    border:1px solid var(--glass-line); border-radius:24px;
+    border:1px solid var(--glass-line); border-radius:var(--rrad,24px);
     display:flex; flex-direction:column; min-height:320px;
-    box-shadow:var(--shadow); transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    box-shadow:var(--rcard,var(--shadow));
+    transition:transform .18s ease, border-color .18s ease, box-shadow .32s ease, border-radius .32s ease;
   }
-  .choice::before{ /* 상단 하이라이트 라인 */
-    content:""; position:absolute; top:0; left:0; right:0; height:3px;
-    background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent); opacity:.6;
+  .choice::before{ /* 상단 하이라이트 라인 — 라운드 색/두께가 올라갈수록 강해짐 */
+    content:""; position:absolute; top:0; left:0; right:0; height:var(--rbarH,3px);
+    background:linear-gradient(90deg,transparent,var(--rc),var(--rc2),transparent); opacity:var(--rbarO,.6);
+    transition:height .32s ease, opacity .32s ease;
   }
-  .choice:hover{transform:translateY(-6px); border-color:rgba(124,140,255,.6); box-shadow:0 26px 60px rgba(124,140,255,.35)}
+  .choice:hover{transform:translateY(-6px); border-color:var(--rc); box-shadow:var(--rcard,var(--shadow)), var(--rglow)}
   .choice:active{transform:translateY(-2px)}
   /* 제목 영역 */
   .choice .cname{
@@ -180,10 +209,15 @@
   th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
   td.num,th.num{text-align:center}
   tbody tr.top{background:rgba(255,255,255,.03)}
-  tr .rk{font-weight:900; color:var(--muted)}
+  tr .rk{font-weight:900; color:#7f8ac2}          /* 4위부터 = 은색(2위)과 확실히 구분되는 인디고 */
   .rk.rk1{color:var(--gold)}
   .rk.rk2{color:var(--silver)}
   .rk.rk3{color:#e0a06a}
+  /* 1·2·3위는 후보 이름 글씨도 메달색으로 (서로 다르게) */
+  #statsBody tr.top td.cand{font-weight:800}
+  #statsBody tr.rrow1 td.cand{color:var(--gold)}
+  #statsBody tr.rrow2 td.cand{color:var(--silver)}
+  #statsBody tr.rrow3 td.cand{color:#e0a06a}
   .row{display:flex; gap:10px; margin-top:20px}
   .row .btn{margin-top:0}
   .note{font-size:12.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.65}
@@ -364,6 +398,20 @@
     }
   }
 
+  // 이름 확인 결과 프리페치: 입력 중 미리 checkname 을 호출해두면 시작 클릭 시 대기 없이 진행
+  var _nameCheck = { name:null, promise:null, result:null };
+  function checkNamePromise(name){
+    if (_nameCheck.name === name){
+      if (_nameCheck.result) return Promise.resolve(_nameCheck.result);  // 이미 확인 완료 → 즉시
+      if (_nameCheck.promise) return _nameCheck.promise;                 // 확인 진행 중 → 재사용
+    }
+    _nameCheck = { name:name, promise:null, result:null };
+    var p = jsonp({ action:'checkname', name:name, deviceId:getDeviceId() });
+    _nameCheck.promise = p;
+    p.then(function(res){ if (_nameCheck.name === name) _nameCheck.result = res; }).catch(function(){});
+    return p;
+  }
+
   function startTournament(){
     if ($('btnStart').disabled) return;                 // 이름 확인 중 중복 실행 방지
     var name = $('participant').value.trim();
@@ -373,9 +421,10 @@
     //  - taken(다른 기기) → 차단하고 다른 이름 요청
     if (CONFIG.apiUrl){
       var btn = $('btnStart'); var oldTxt = btn.textContent;
-      btn.disabled = true; btn.textContent = '이름 확인 중…';
+      var prefetched = (_nameCheck.name === name && _nameCheck.result);   // 미리 확인돼 있으면 대기 없이
+      if (!prefetched){ btn.disabled = true; btn.textContent = '이름 확인 중…'; }
       $('startNote').textContent = '';
-      jsonp({action:'checkname', name:name, deviceId:getDeviceId()}).then(function(res){
+      checkNamePromise(name).then(function(res){
         btn.disabled = false; btn.textContent = oldTxt;
         if (res && res.ok && res.status === 'taken'){
           $('participant').focus(); $('participant').select();
@@ -422,8 +471,10 @@
     B.querySelector('.cdesc').textContent = b.desc || '';
     var matchCount = state.round.length/2;
     var matchNo = (state.idx/2)+1;
-    $('progressLabel').innerHTML = '<span class="round-big">' + roundName(state.aliveAtRoundStart) + '</span>'
+    var rlabel = roundName(state.aliveAtRoundStart);
+    $('progressLabel').innerHTML = '<span class="round-big">' + rlabel + '</span>'
       + '<span class="round-count">' + matchNo + ' / ' + matchCount + '</span>';
+    $('screenGame').setAttribute('data-round', rlabel);   // 라운드별 크기·색·카드 업그레이드 스위치
     $('progressBar').style.width = Math.round(state.matchesPlayed/state.totalMatches*100) + '%';
   }
 
@@ -541,7 +592,8 @@
         prevRank = rank; prevKey = key;
         var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
         var rc = rank <= 3 ? ' rk' + rank : '';
-        return '<tr' + (rank <= 3 ? ' class="top"' : '') + '><td class="rk' + rc + '">' + rank + '</td><td class="cand" data-name="' + esc(c.name) + '">' + esc(c.name) + '</td>'
+        var trCls = rank <= 3 ? ' class="top rrow' + rank + '"' : '';
+        return '<tr' + trCls + '><td class="rk' + rc + '">' + rank + '</td><td class="cand" data-name="' + esc(c.name) + '">' + esc(c.name) + '</td>'
           + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
       }).join('');
       body.innerHTML = '<table><thead><tr><th class="num">#</th><th>후보</th>'
@@ -557,6 +609,13 @@
     $('pageSubtitle').textContent = CONFIG.subtitle || '';
     $('btnStart').addEventListener('click', startTournament);
     $('participant').addEventListener('keydown', function(e){ if(e.key==='Enter') startTournament(); });
+    // 입력 중 이름 미리 확인(프리페치) → 시작 클릭 시 대기 시간 단축
+    var _pfTimer;
+    $('participant').addEventListener('input', function(){
+      clearTimeout(_pfTimer);
+      if (!CONFIG.apiUrl) return;
+      _pfTimer = setTimeout(function(){ var nm = $('participant').value.trim(); if (nm) checkNamePromise(nm); }, 450);
+    });
     $('choiceA').addEventListener('click', function(){ pick('a'); });
     $('choiceB').addEventListener('click', function(){ pick('b'); });
     // 다시 참여: 이름을 남겨둔다 — 같은 기기(본인)면 그 이름으로 다시 해 결과를 갱신할 수 있음
