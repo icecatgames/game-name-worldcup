@@ -187,6 +187,7 @@
   .row{display:flex; gap:10px; margin-top:20px}
   .row .btn{margin-top:0}
   .note{font-size:12.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.65}
+  .warn{color:#ff9db4; font-weight:700}
   .stat-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px}
   .stat-top h2{font-size:20px; font-weight:800}
   .info-chip{
@@ -223,15 +224,15 @@
       { name: "Kings Reign (킹스레인)", desc: "왕의 통치·군림을 뜻함. 왕국을 다스리며 세력을 넓혀가는 군주 판타지를 직관적으로 전달." },
       { name: "Last Elysium (라스트 엘리시움)", desc: "엘리시움은 신화 속 낙원. 몰락한 세계에서 마지막 안식처를 지켜낸다는 생존·종말 서사를 담음." },
       { name: "Wartopia (워토피아)", desc: "War(전쟁) + Utopia(이상향)의 합성어. 끝없는 전쟁 속에서 이상향을 건설한다는 아이러니한 매력을 노림." },
-      { name: "Grow Kingdom (왕국 키우기)", desc: "작은 영지에서 시작해 왕국을 키워가는 성장·경영의 재미를 쉬운 말로 풀어낸 이름." },
-      { name: "King Hold (킹홀드)", desc: "왕좌를 지켜낸다(Hold)는 의미. 방어·수성 콘텐츠의 긴장감을 강조." },
-      { name: "Kingdom of Fighters (킹덤 오브 파이터즈)", desc: "왕국을 두고 다투는 수많은 전사들. 캐릭터·전투 중심의 경쟁 콘텐츠를 부각. 유명 격투게임 'The King of Fighters'를 연상시키는 언어유희로 친숙함을 노림." },
+      { name: "Kingdom Growth (왕국 키우기)", desc: "작은 영지에서 시작해 왕국을 키워가는 성장·경영의 재미를 쉬운 말로 풀어낸 이름." },
+      { name: "Kinghold (킹홀드)", desc: "‘왕의 거점·요새(hold=성채)’라는 뜻. 기지를 건설하고 지켜내는 수성 중심 콘텐츠를 강조." },
+      { name: "Kingdom of Fighters (킹덤 오브 파이터즈)", desc: "왕(유저)들끼리 맞붙는 왕국. 무거운 ‘전쟁’보다 ‘싸움(Fighters)’으로 가볍게 접근. 격투게임 ‘King of Fighters’를 왕국(Kingdom)으로 변주한 언어유희로 친숙함을 노림." },
       { name: "Epic of Kingdoms (에픽 오브 킹덤즈)", desc: "여러 왕국이 얽힌 대서사(Epic)를 표방. 방대한 세계관과 세력 다툼의 스케일을 강조." },
       { name: "War Crown (워 크라운)", desc: "전쟁(War)으로 왕관(Crown)을 쟁취한다는 뜻. 정복·패권 경쟁을 상징." },
-      { name: "World King (월드킹)", desc: "전 세계 서버를 제패하는 최강의 왕. 글로벌 경쟁·랭킹 지향을 직관적으로 표현." },
+      { name: "WorldKing (월드킹)", desc: "중앙 왕성을 차지한 서버 1위, 즉 세계의 왕. ‘월드컵’을 연상시키는 친숙함과 글로벌 경쟁·랭킹 지향을 직관적으로 표현." },
       { name: "Legend of Skyna (레전드 오브 스카이나)", desc: "스카이나라는 고유 세계관 이름을 내세운 전설담. 브랜드 고유성과 판타지 분위기를 확보." },
       { name: "Age of Kingdoms (에이지 오브 킹덤즈)", desc: "여러 왕국이 흥망을 거듭하는 하나의 시대(Age)를 표방. 세력 다툼의 스케일과 문명 건설·발전의 장대함을 강조." },
-      { name: "King Fall (킹폴)", desc: "왕의 몰락(Fall). 왕좌를 둘러싼 흥망성쇠 드라마와 하극상의 긴장감을 담음." }
+      { name: "Kingfall (킹폴)", desc: "왕좌의 몰락(Fall). 무너진 왕국에서 살아남아 다시 일으켜 세우는 재건 서사를 담음." }
     ]
   };
   </script>
@@ -247,7 +248,7 @@
       <input id="participant" placeholder="이름을 입력하고 참여하세요" maxlength="20" autocomplete="off">
       <button class="btn" id="btnStart">이름 확인하고 참여하기</button>
       <button class="btn ghost" id="btnStatsFromStart" style="margin-top:10px">전체 통계 보기</button>
-      <div class="note" id="startNote">※ 같은 이름으로 다시 참여하면 마지막 결과로 갱신됩니다.</div>
+      <div class="note" id="startNote">※ 이미 등록된 이름은 다른 분이 쓸 수 없어요. 본인이 쓴 이름은 같은 기기에서 다시 참여해 결과를 바꿀 수 있습니다.</div>
     </div>
   </section>
 
@@ -347,9 +348,51 @@
   // ---------- 게임 상태 (부전승 지원, 12강 등 2의 거듭제곱이 아닌 인원도 처리) ----------
   var state = {};
 
+  var DEFAULT_START_NOTE = '※ 이미 등록된 이름은 다른 분이 쓸 수 없어요. 본인이 쓴 이름은 같은 기기에서 다시 참여해 결과를 바꿀 수 있습니다.';
+
+  // 기기(브라우저) 고유 ID: 같은 이름 재참여가 '본인'인지 판별하는 데 사용
+  var DEVICE_KEY = 'wc_device_id';
+  function genId(){ return 'd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10); }
+  function getDeviceId(){
+    try{
+      var id = localStorage.getItem(DEVICE_KEY);
+      if (!id){ id = genId(); localStorage.setItem(DEVICE_KEY, id); }
+      return id;
+    }catch(e){
+      if (!window.__wc_dev) window.__wc_dev = genId();  // localStorage 불가(시크릿창 등) 시 세션 임시 ID
+      return window.__wc_dev;
+    }
+  }
+
   function startTournament(){
+    if ($('btnStart').disabled) return;                 // 이름 확인 중 중복 실행 방지
     var name = $('participant').value.trim();
     if (!name){ $('participant').focus(); $('startNote').textContent = '참가자 이름을 입력해주세요.'; return; }
+    // 동명이인 방지: 같은 이름을 '다른 기기'가 이미 등록했으면 차단.
+    //  - free(신규) / mine(같은 기기=본인) → 그대로 진행(본인은 결과 갱신)
+    //  - taken(다른 기기) → 차단하고 다른 이름 요청
+    if (CONFIG.apiUrl){
+      var btn = $('btnStart'); var oldTxt = btn.textContent;
+      btn.disabled = true; btn.textContent = '이름 확인 중…';
+      $('startNote').textContent = '';
+      jsonp({action:'checkname', name:name, deviceId:getDeviceId()}).then(function(res){
+        btn.disabled = false; btn.textContent = oldTxt;
+        if (res && res.ok && res.status === 'taken'){
+          $('participant').focus(); $('participant').select();
+          $('startNote').innerHTML = '<span class="warn">다른 분이 이미 사용 중인 이름입니다. 다른 이름(닉네임)으로 참여해주세요.</span>';
+          return;
+        }
+        beginTournament(name);
+      }).catch(function(){
+        btn.disabled = false; btn.textContent = oldTxt;
+        beginTournament(name);                          // 이름 확인 실패(네트워크 등) 시엔 진행 허용
+      });
+    } else {
+      beginTournament(name);
+    }
+  }
+
+  function beginTournament(name){
     var pool = shuffle(CONFIG.candidates);
     var N = pool.length;
     if (N < 2){ $('startNote').textContent = '후보가 최소 2명 필요합니다.'; return; }
@@ -420,9 +463,11 @@
       jsonp({
         action:'submit', participant: state.participant,
         champion: state.champion.name, runnerup: state.runnerup.name,
-        round: state.selectedCount, title: CONFIG.title
+        round: state.selectedCount, title: CONFIG.title, deviceId: getDeviceId()
       }).then(function(res){
-        $('submitNote').textContent = (res && res.ok) ? '결과가 전체 통계에 반영되었습니다 ✓' : '저장 실패: ' + ((res&&res.error)||'오류');
+        if (res && res.ok){ $('submitNote').textContent = '결과가 전체 통계에 반영되었습니다 ✓'; }
+        else if (res && res.error === 'name-taken'){ $('submitNote').innerHTML = '<span class="warn">이 이름은 다른 분이 사용 중이라 저장되지 않았습니다. 다른 이름으로 다시 참여해 주세요.</span>'; }
+        else { $('submitNote').textContent = '저장 실패: ' + ((res && res.error) || '오류'); }
       }).catch(function(){ $('submitNote').textContent = '결과 저장 실패 (네트워크/URL 확인).'; });
     } else {
       $('submitNote').textContent = '※ apiUrl 미설정: 통계는 저장되지 않습니다.';
@@ -514,9 +559,9 @@
     $('participant').addEventListener('keydown', function(e){ if(e.key==='Enter') startTournament(); });
     $('choiceA').addEventListener('click', function(){ pick('a'); });
     $('choiceB').addEventListener('click', function(){ pick('b'); });
-    // 다시 참여: 이름을 남겨두어 같은 이름으로 재참여 시 마지막 결과로 갱신되게 함
-    $('btnRestart').addEventListener('click', function(){ show('screenStart'); $('participant').focus(); });
-    $('btnBackHome').addEventListener('click', function(){ show('screenStart'); });
+    // 다시 참여: 이름을 남겨둔다 — 같은 기기(본인)면 그 이름으로 다시 해 결과를 갱신할 수 있음
+    $('btnRestart').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); $('participant').focus(); $('participant').select(); });
+    $('btnBackHome').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); });
     $('btnStatsFromResult').addEventListener('click', loadStats);
     $('btnRefreshStats').addEventListener('click', loadStats);
     $('participantsBtn').addEventListener('click', toggleParticipants);
