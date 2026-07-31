@@ -17,6 +17,7 @@
     --shadow:0 20px 60px rgba(0,0,0,.45);
   }
   *{box-sizing:border-box; margin:0; padding:0}
+  @property --angle{ syntax:"<angle>"; initial-value:0deg; inherits:false; }   /* 결승 회전 보더용 */
   html,body{min-height:100%}
   body{
     font-family:"Pretendard","Malgun Gothic","Segoe UI",system-ui,sans-serif;
@@ -113,6 +114,46 @@
     filter:drop-shadow(0 3px 10px rgba(255,206,84,.6)); animation:crownPop .4s ease;
   }
   @keyframes crownPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+  /* 카드 등급: 배지 텍스트(--rlabel) + 프레임 강화(--rframe, inset 이중테두리) + 결승 FINAL 리본 */
+  #screenGame{ --rlabel:""; --rframe:0 0 transparent; }
+  #screenGame[data-round="12강"]{ --rlabel:"12강"; --rframe:0 0 transparent; }
+  #screenGame[data-round="8강"]{ --rlabel:"8강"; --rframe:inset 0 0 0 1px rgba(79,208,230,.16); }
+  #screenGame[data-round="4강"]{ --rlabel:"4강"; --rframe:inset 0 0 0 1.5px rgba(95,224,163,.26), inset 0 0 0 5px rgba(95,224,163,.06); }
+  #screenGame[data-round="준결승"]{ --rlabel:"준결승"; --rframe:inset 0 0 0 2px rgba(181,140,255,.34), inset 0 0 0 6px rgba(181,140,255,.10); }
+  #screenGame[data-round="결승"]{ --rlabel:"👑 결승"; --rframe:inset 0 0 0 2.5px rgba(255,206,84,.55), inset 0 0 0 7px rgba(255,206,84,.14); }
+  .choice .cname{ padding-top:48px; position:relative; }  /* 배지 자리 확보 + 배지 앵커 */
+  #screenGame[data-round="결승"] .choice::after{           /* 결승 FINAL 리본 */
+    content:"FINAL"; display:block; position:absolute; left:0; right:0; bottom:0; z-index:3;
+    text-align:center; font-family:"Poppins",sans-serif; font-weight:800; letter-spacing:4px; font-size:12px;
+    color:#5a3d00; padding:7px 0;
+    background:linear-gradient(92deg,#ffd35c,#fff2c8 50%,#ffce54);
+    box-shadow:0 -4px 16px rgba(255,206,84,.45);
+  }
+  #screenGame[data-round="결승"] .choice .cdesc{ padding-bottom:46px; }   /* 리본 자리 */
+
+  /* 결승 = 챔피언십: 회전하는 금색 conic 보더 빔 + 금박 포일 타이틀 */
+  #screenGame[data-round="결승"] .choice{
+    border:2.5px solid transparent;
+    background:
+      linear-gradient(160deg,#1c1608,#241a05) padding-box,
+      conic-gradient(from var(--angle), #ffd35c, #fff3c4, #b8860b, #ffe9a8, #ffce54, #ffd35c) border-box;
+    backdrop-filter:none; -webkit-backdrop-filter:none;
+    animation:spinBorder 6s linear infinite;
+  }
+  #screenGame[data-round="결승"] .choice .cname{ background:rgba(255,214,92,.05); border-bottom-color:rgba(255,206,84,.28); }
+  #screenGame[data-round="결승"] .cname-main{
+    background:linear-gradient(100deg,#7a5a12,#ffd35c 20%,#fff3c4 30%,#ffd35c 45%,#b8860b 60%,#ffe9a8 80%,#ffd35c);
+    background-size:250% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:foilShine 4s linear infinite;
+  }
+  #screenGame[data-round="결승"] .cname-sub{ color:#ffe1a0; }
+  @keyframes spinBorder{ to{ --angle:360deg; } }
+  @keyframes foilShine{ to{ background-position:250% 0; } }
+  @media (prefers-reduced-motion: reduce){
+    #screenGame[data-round="결승"] .choice, #screenGame[data-round="결승"] .cname-main{ animation:none; }
+  }
   .round-count{
     font-size:clamp(16px,1.7vw,20px); font-weight:800; color:#cdd6f5; letter-spacing:2.5px;
     padding:4px 14px; border-radius:99px; background:var(--glass); border:1px solid var(--glass-line); margin-top:2px;
@@ -136,15 +177,26 @@
     background:var(--glass); backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
     border:1px solid var(--glass-line); border-radius:var(--rrad,24px);
     display:flex; flex-direction:column; min-height:320px;
-    box-shadow:var(--rcard,var(--shadow));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.28), var(--rframe,0 0 transparent), var(--rcard,var(--shadow));
     transition:transform .18s ease, border-color .18s ease, box-shadow .32s ease, border-radius .32s ease;
   }
-  .choice::before{ /* 상단 하이라이트 라인 — 라운드 색/두께가 올라갈수록 강해짐 */
-    content:""; position:absolute; top:0; left:0; right:0; height:var(--rbarH,3px);
-    background:linear-gradient(90deg,transparent,var(--rc),var(--rc2),transparent); opacity:var(--rbarO,.6);
-    transition:height .32s ease, opacity .32s ease;
+  .choice::before{ /* 커서 추적 스포트라이트 (hover) */
+    content:""; position:absolute; inset:0; border-radius:inherit; z-index:2; pointer-events:none;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.10), transparent 60%);
+    opacity:0; transition:opacity .25s ease;
   }
-  .choice:hover{transform:translateY(-6px); border-color:var(--rc); box-shadow:var(--rcard,var(--shadow)), var(--rglow)}
+  @media(hover:hover){ .choice:hover::before{ opacity:1; } }
+  .choice::after{ content:""; display:none; }   /* 기본 없음(결승에서 FINAL 리본으로 사용) */
+  .choice .cname::before{ /* 라운드 등급 배지 (칩) */
+    content:var(--rlabel,"");
+    position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:4;
+    font-family:"Gothic A1","Malgun Gothic",sans-serif; font-weight:800; font-size:12px; letter-spacing:.4px;
+    color:#0b1020; white-space:nowrap;
+    padding:4px 13px; border-radius:99px;
+    background:linear-gradient(92deg,var(--rc),var(--rc2));
+    box-shadow:0 5px 14px var(--rshadow);
+  }
+  .choice:hover{transform:translateY(-6px); border-color:var(--rc); box-shadow:inset 0 1px 0 rgba(255,255,255,.3), var(--rframe,0 0 transparent), var(--rcard,var(--shadow)), var(--rglow)}
   .choice:active{transform:translateY(-2px)}
   /* 제목 영역 */
   .choice .cname{
@@ -209,10 +261,12 @@
   th{color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.5px}
   td.num,th.num{text-align:center}
   tbody tr.top{background:rgba(255,255,255,.03)}
-  tr .rk{font-weight:900; color:#7f8ac2}          /* 4위부터 = 은색(2위)과 확실히 구분되는 인디고 */
+  tr .rk{font-weight:900; color:#8a97e6}          /* 4위부터 = 은색(2위)과 확실히 구분되는 인디고 */
   .rk.rk1{color:var(--gold)}
   .rk.rk2{color:var(--silver)}
   .rk.rk3{color:#e0a06a}
+  /* 4위 이하는 순위 숫자와 이름을 같은 인디고로 통일 → 2위 은색과 확실히 분리 */
+  #statsBody tr:not(.top) td.cand{color:#8a97e6}
   /* 1·2·3위는 후보 이름 글씨도 메달색으로 (서로 다르게) */
   #statsBody tr.top td.cand{font-weight:800}
   #statsBody tr.rrow1 td.cand{color:var(--gold)}
@@ -420,22 +474,17 @@
     //  - free(신규) / mine(같은 기기=본인) → 그대로 진행(본인은 결과 갱신)
     //  - taken(다른 기기) → 차단하고 다른 이름 요청
     if (CONFIG.apiUrl){
-      var btn = $('btnStart'); var oldTxt = btn.textContent;
-      var prefetched = (_nameCheck.name === name && _nameCheck.result);   // 미리 확인돼 있으면 대기 없이
-      if (!prefetched){ btn.disabled = true; btn.textContent = '이름 확인 중…'; }
-      $('startNote').textContent = '';
-      checkNamePromise(name).then(function(res){
-        btn.disabled = false; btn.textContent = oldTxt;
-        if (res && res.ok && res.status === 'taken'){
-          $('participant').focus(); $('participant').select();
-          $('startNote').innerHTML = '<span class="warn">다른 분이 이미 사용 중인 이름입니다. 다른 이름(닉네임)으로 참여해주세요.</span>';
-          return;
-        }
-        beginTournament(name);
-      }).catch(function(){
-        btn.disabled = false; btn.textContent = oldTxt;
-        beginTournament(name);                          // 이름 확인 실패(네트워크 등) 시엔 진행 허용
-      });
+      var pre = (_nameCheck.name === name && _nameCheck.result) ? _nameCheck.result : null;
+      // 이미 '다른 기기 소유'로 확인된 이름만 즉시 차단
+      if (pre && pre.ok && pre.status === 'taken'){
+        $('participant').focus(); $('participant').select();
+        $('startNote').innerHTML = '<span class="warn">다른 분이 이미 사용 중인 이름입니다. 다른 이름(닉네임)으로 참여해주세요.</span>';
+        return;
+      }
+      // 그 외에는 기다리지 않고 즉시 시작(낙관적). 최종 소유권은 결과 저장 시 서버가 판정하며,
+      // 만약 다른 기기 소유였다면 저장 단계에서 name-taken 으로 안내된다.
+      if (!pre) checkNamePromise(name);   // 백그라운드 확인만 걸어둠(다음 시도 시 즉시 차단용)
+      beginTournament(name);
     } else {
       beginTournament(name);
     }
@@ -614,10 +663,20 @@
     $('participant').addEventListener('input', function(){
       clearTimeout(_pfTimer);
       if (!CONFIG.apiUrl) return;
-      _pfTimer = setTimeout(function(){ var nm = $('participant').value.trim(); if (nm) checkNamePromise(nm); }, 450);
+      _pfTimer = setTimeout(function(){ var nm = $('participant').value.trim(); if (nm) checkNamePromise(nm); }, 300);
     });
     $('choiceA').addEventListener('click', function(){ pick('a'); });
     $('choiceB').addEventListener('click', function(){ pick('b'); });
+    // 커서 추적 스포트라이트(마우스 있는 환경만)
+    if (window.matchMedia && window.matchMedia('(hover:hover)').matches){
+      [$('choiceA'), $('choiceB')].forEach(function(c){
+        c.addEventListener('pointermove', function(e){
+          var r = c.getBoundingClientRect();
+          c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+          c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        });
+      });
+    }
     // 다시 참여: 이름을 남겨둔다 — 같은 기기(본인)면 그 이름으로 다시 해 결과를 갱신할 수 있음
     $('btnRestart').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); $('participant').focus(); $('participant').select(); });
     $('btnBackHome').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); });
