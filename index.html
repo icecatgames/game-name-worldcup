@@ -95,19 +95,48 @@
     --rrest:0 0 transparent; --rglow:0 26px 60px rgba(124,140,255,.35); --rshadow:rgba(124,140,255,.4);
   }
   #screenGame[data-round="12강"]{ --rc:#9ca3af; --rc2:#cbd2dd; --rsize:clamp(30px,4.8vw,42px);
-    --rface:linear-gradient(160deg,#171b23,#0f1219); --rborder:linear-gradient(#5b6472,#3a4048); --rbw:1px;
+    --rface:linear-gradient(160deg,#171b23,#0f1219); --rborder:linear-gradient(#5b6472,#3a4048); --rbw:0;
     --rrest:0 0 transparent; --rglow:0 20px 44px rgba(140,150,170,.26); --rshadow:rgba(170,180,200,.35); }
   #screenGame[data-round="8강"]{ --rc:#4ade80; --rc2:#b7f7cf; --rsize:clamp(34px,5.6vw,50px);
-    --rface:linear-gradient(160deg,#0f1712,#0b110c); --rborder:linear-gradient(145deg,#7ff0a8,#0b0e13 46%,#1f7a44); --rbw:2px;
+    --rface:linear-gradient(160deg,#0f1712,#0b110c); --rborder:linear-gradient(145deg,#7ff0a8,#0b0e13 46%,#1f7a44); --rbw:0;
     --rrest:0 0 20px rgba(34,197,94,.22); --rglow:0 24px 54px rgba(34,197,94,.42); --rshadow:rgba(74,222,128,.5); }
   #screenGame[data-round="4강"]{ --rc:#38bdf8; --rc2:#bfe6ff; --rsize:clamp(38px,6.4vw,58px);
-    --rface:linear-gradient(160deg,#0e1420,#0a0f18); --rborder:linear-gradient(145deg,#8fd8ff,#0b0e13 46%,#1e4fd1); --rbw:2px;
+    --rface:linear-gradient(160deg,#0e1420,#0a0f18); --rborder:linear-gradient(145deg,#8fd8ff,#0b0e13 46%,#1e4fd1); --rbw:0;
     --rrest:0 0 26px rgba(59,130,246,.3); --rglow:0 24px 58px rgba(56,189,248,.46); --rshadow:rgba(56,189,248,.5); }
   #screenGame[data-round="준결승"]{ --rc:#c084fc; --rc2:#e6d0ff; --rsize:clamp(42px,7.2vw,66px);
     --rface:linear-gradient(160deg,#16101f,#100b18); --rbw:2px;
     --rrest:0 0 32px rgba(168,85,247,.36); --rglow:0 26px 62px rgba(192,132,252,.5); --rshadow:rgba(192,132,252,.55); }
   #screenGame[data-round="결승"]{ --rc:#ffd35c; --rc2:#fff0bf; --rsize:clamp(48px,8.4vw,78px); --rbw:2.5px;
     --rrest:0 0 40px rgba(251,191,36,.34), 0 0 82px rgba(255,122,24,.2); --rglow:0 28px 70px rgba(255,206,84,.55); --rshadow:rgba(255,206,84,.6); }
+
+  /* ── 등급별 테두리 선(사각형 고정, 안쪽으로 성장): 1줄 → 2줄 → 3줄+깊이 → 금속엣지+내부선 → 다중선+깊이 ──
+     선 사이 어두운 갭(#0a0d14)이 각인(engraved) 채널처럼 보이게 함. 색은 --rc 로 등급 반영(color-mix) */
+  #screenGame{ --rlines:inset 0 0 0 1px rgba(255,255,255,.1); }
+  #screenGame[data-round="12강"]{ --rlines:
+    inset 0 0 0 1px color-mix(in srgb, var(--rc) 45%, transparent); }
+  #screenGame[data-round="8강"]{ --rlines:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--rc) 85%, transparent),
+    inset 0 0 0 4px #0a0d14,
+    inset 0 0 0 5px color-mix(in srgb, var(--rc) 45%, transparent); }
+  #screenGame[data-round="4강"]{ --rlines:
+    inset 0 0 0 2px color-mix(in srgb, var(--rc) 95%, transparent),
+    inset 0 0 0 5px #0a0d14,
+    inset 0 0 0 6.5px color-mix(in srgb, var(--rc) 60%, transparent),
+    inset 0 0 0 9.5px #0a0d14,
+    inset 0 0 0 11px color-mix(in srgb, var(--rc) 38%, transparent),
+    inset 0 0 16px rgba(0,0,0,.4); }
+  #screenGame[data-round="준결승"]{ --rlines:
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    inset 0 0 10px rgba(0,0,0,.5),
+    inset 0 0 0 7px #0a0d14,
+    inset 0 0 0 8.5px color-mix(in srgb, var(--rc) 55%, transparent); }
+  #screenGame[data-round="결승"]{ --rlines:
+    inset 0 0 0 1px rgba(255,255,255,.2),
+    inset 0 0 0 6px #0a0d14,
+    inset 0 0 0 7.5px color-mix(in srgb, var(--rc) 60%, transparent),
+    inset 0 0 0 10.5px #0a0d14,
+    inset 0 0 0 12px color-mix(in srgb, var(--rc) 32%, transparent),
+    inset 0 0 24px rgba(0,0,0,.5); }
 
   .round-big{
     font-family:"Gothic A1","Pretendard","Malgun Gothic",sans-serif;
@@ -196,7 +225,7 @@
     background:var(--rface,linear-gradient(160deg,#141821,#0f131a)) padding-box, var(--rborder,linear-gradient(#4b5563,#4b5563)) border-box;
     border:var(--rbw,1px) solid transparent; border-radius:var(--rshape, var(--rrad,24px));
     display:flex; flex-direction:column; min-height:320px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(0,0,0,.5), var(--rframe,0 0 transparent), var(--rrest,0 0 transparent), 0 14px 34px rgba(0,0,0,.5);
+    box-shadow:var(--rlines,inset 0 0 0 1px rgba(255,255,255,.1)), inset 0 1px 0 rgba(255,255,255,.12), inset 0 -1px 0 rgba(0,0,0,.45), var(--rrest,0 0 transparent), 0 14px 34px rgba(0,0,0,.5);
     transition:transform .18s ease, box-shadow .32s ease, border-radius .32s ease;
   }
   /* 등급 이펙트 오버레이(그레인 + 4강 샤인 스윕 + 에픽/레전더리 홀로) */
@@ -228,7 +257,7 @@
     background:linear-gradient(92deg,var(--rc),var(--rc2));
     box-shadow:0 5px 14px var(--rshadow);
   }
-  .choice:hover{transform:translateY(-6px); box-shadow:inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(0,0,0,.5), var(--rframe,0 0 transparent), var(--rrest,0 0 transparent), var(--rglow), 0 20px 44px rgba(0,0,0,.55)}
+  .choice:hover{transform:translateY(-6px); box-shadow:var(--rlines,inset 0 0 0 1px rgba(255,255,255,.1)), inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(0,0,0,.5), var(--rrest,0 0 transparent), var(--rglow), 0 20px 44px rgba(0,0,0,.55)}
   .choice:active{transform:translateY(-2px)}
   /* 제목 영역 */
   .choice .cname{
@@ -260,7 +289,7 @@
   @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
 
   /* ── 등급 진화 장식: 모서리 브래킷(4강↑) + 등급 별(1~5개) ── */
-  .choice .corns{ position:absolute; inset:9px; z-index:3; pointer-events:none; display:none; }
+  .choice .corns{ position:absolute; inset:16px; z-index:3; pointer-events:none; display:none; }
   #screenGame[data-round="4강"] .choice .corns,
   #screenGame[data-round="준결승"] .choice .corns,
   #screenGame[data-round="결승"] .choice .corns{ display:block; }
