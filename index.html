@@ -739,6 +739,21 @@
     fetchStats();                               // 항상 백그라운드로 최신 갱신
   }
 
+  // 새로고침 버튼: 이미 데이터가 있어도 잠깐(약 0.15초) "불러오는 중"을 일부러 보여줘
+  // "갱신됨"을 눈으로 확인시켜 준 뒤 다시 렌더. (첫 진입 loadStats 는 즉시 표시)
+  function refreshStats(){
+    if (!CONFIG.apiUrl){ $('statsBody').innerHTML = '<div class="spinner">apiUrl이 설정되지 않았습니다.</div>'; return; }
+    var body = $('statsBody');
+    $('participantList').classList.remove('open');
+    $('totalGames').textContent = '';
+    body.innerHTML = '<div class="spinner">불러오는 중…</div>';
+    _renderedSig = null;                         // 강제 재렌더
+    fetchStats();                                // 최신 데이터 요청(돌아오면 renderStats가 갱신)
+    setTimeout(function(){                        // 최소 로딩 노출 후 현재 데이터로 렌더(피드백)
+      if ($('screenStats').classList.contains('active') && !body.querySelector('table') && lastStats){ renderStats(lastStats); }
+    }, 150);
+  }
+
   function init(){
     $('pageTitle').textContent = CONFIG.title;
     document.title = CONFIG.title;
@@ -768,7 +783,7 @@
     $('btnRestart').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); $('participant').focus(); $('participant').select(); });
     $('btnBackHome').addEventListener('click', function(){ $('startNote').textContent=DEFAULT_START_NOTE; show('screenStart'); });
     $('btnStatsFromResult').addEventListener('click', loadStats);
-    $('btnRefreshStats').addEventListener('click', loadStats);
+    $('btnRefreshStats').addEventListener('click', refreshStats);
     $('participantsBtn').addEventListener('click', toggleParticipants);
     $('btnStatsFromStart').addEventListener('click', loadStats);
     // 창 크기가 바뀌면 통계 화면일 때 이름 글자 크기 다시 계산
