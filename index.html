@@ -124,11 +124,11 @@
   /* 카드 등급: 배지 텍스트(--rlabel) + 프레임 강화(--rframe, inset 이중테두리) + 결승 FINAL 리본 */
   /* --rshape = 카드 외형(실루엣). 라운드가 오를수록 위쪽이 점점 아치형으로 변함(사각→돔형 방패) */
   #screenGame{ --rlabel:""; --rframe:0 0 transparent; --rshape:24px; }
-  #screenGame[data-round="12강"]{ --rlabel:"COMMON · 12강"; --rframe:0 0 transparent; --rshape:14px; }
-  #screenGame[data-round="8강"]{ --rlabel:"UNCOMMON · 8강"; --rframe:inset 0 0 0 1px rgba(74,222,128,.18); --rshape:30px 30px 16px 16px; }
-  #screenGame[data-round="4강"]{ --rlabel:"RARE · 4강"; --rframe:inset 0 0 0 1px rgba(56,189,248,.24), inset 0 0 0 5px rgba(56,189,248,.07); --rshape:52px 52px 18px 18px; }
-  #screenGame[data-round="준결승"]{ --rlabel:"EPIC · 준결승"; --rframe:inset 0 0 0 1.5px rgba(192,132,252,.3), inset 0 0 0 6px rgba(192,132,252,.1); --rshape:76px 76px 20px 20px; }
-  #screenGame[data-round="결승"]{ --rlabel:"👑 LEGENDARY · 결승"; --rframe:inset 0 0 0 2px rgba(255,206,84,.42), inset 0 0 0 7px rgba(255,206,84,.13); --rshape:120px 120px 24px 24px; }
+  #screenGame[data-round="12강"]{ --rlabel:"12강"; --rframe:0 0 transparent; --rshape:14px; }
+  #screenGame[data-round="8강"]{ --rlabel:"8강"; --rframe:inset 0 0 0 1px rgba(74,222,128,.18); --rshape:30px 30px 16px 16px; }
+  #screenGame[data-round="4강"]{ --rlabel:"4강"; --rframe:inset 0 0 0 1px rgba(56,189,248,.24), inset 0 0 0 5px rgba(56,189,248,.07); --rshape:52px 52px 18px 18px; }
+  #screenGame[data-round="준결승"]{ --rlabel:"준결승"; --rframe:inset 0 0 0 1.5px rgba(192,132,252,.3), inset 0 0 0 6px rgba(192,132,252,.1); --rshape:76px 76px 20px 20px; }
+  #screenGame[data-round="결승"]{ --rlabel:"👑 결승"; --rframe:inset 0 0 0 2px rgba(255,206,84,.42), inset 0 0 0 7px rgba(255,206,84,.13); --rshape:120px 120px 24px 24px; }
   .choice .cname{ padding-top:48px; position:relative; }  /* 배지 자리 확보 + 배지 앵커 */
   #screenGame[data-round="결승"] .choice::after{           /* 결승 FINAL 리본 */
     content:"FINAL"; display:block; position:absolute; left:0; right:0; bottom:0; z-index:4;
