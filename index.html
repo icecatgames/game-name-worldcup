@@ -6,6 +6,10 @@
 <title>이상형 월드컵</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 통계 백엔드(Apps Script) 연결 사전 워밍업 → 첫 요청 지연 단축 -->
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="dns-prefetch" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Gothic+A1:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -648,35 +652,66 @@
     }
   }
 
+  // ── 통계: 접속 즉시 백그라운드 프리페치 + localStorage 캐시(SWR)로 "불러오는 중" 최소화 ──
+  var lastStats = null;
+  var STATS_CACHE_KEY = 'wc_stats_cache_v1';
+  var _statsInflight = null;
+  var _renderedSig = null;   // 현재 화면에 렌더된 데이터 서명(동일하면 재렌더 생략 → 깜빡임 방지)
+  function statsSig(res){ return JSON.stringify(res.candidates) + '|' + res.totalGames; }
+
+  function buildStatsTable(res){
+    // 올림픽 메달 방식: 우승(금)→준우승(은) 순위, 금·은 동점이면 공동 순위(다음 순위는 건너뜀)
+    var prevRank = 0, prevKey = null;
+    var rows = res.candidates.map(function(c, i){
+      var key = c.champion + '|' + c.runnerup;
+      var rank = (key === prevKey) ? prevRank : (i + 1);
+      prevRank = rank; prevKey = key;
+      var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
+      var rc = rank <= 3 ? ' rk' + rank : '';
+      var trCls = rank <= 3 ? ' class="top rrow' + rank + '"' : '';
+      return '<tr' + trCls + '><td class="rk' + rc + '">' + rank + '</td><td class="cand" data-name="' + esc(c.name) + '">' + esc(c.name) + '</td>'
+        + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
+    }).join('');
+    return '<table><thead><tr><th class="num">#</th><th>후보</th>'
+      + '<th class="num">🥇우승</th><th class="num">🥈준우승</th><th class="num">우승률</th></tr></thead><tbody>'
+      + rows + '</tbody></table>';
+  }
+
+  function renderStats(res){
+    var body = $('statsBody');
+    if (!res || !res.ok){ if (!body.querySelector('table')) body.innerHTML = '<div class="spinner">통계 로드 실패</div>'; return; }
+    lastParticipants = res.participantNames || [];
+    $('totalGames').textContent = '참여 인원 ' + res.totalGames + '명';
+    if (!res.candidates || !res.candidates.length){ body.innerHTML = '<div class="spinner">아직 집계된 결과가 없습니다.</div>'; return; }
+    body.innerHTML = buildStatsTable(res);
+    _renderedSig = statsSig(res);
+    requestAnimationFrame(fitNameCells);   // 후보 이름 폭에 맞춰 글자 크기 조절(안 되면 줄바꿈)
+  }
+
+  // 최신 통계 받아오기(진행 중 요청 재사용). 성공 시 메모리+localStorage 캐시, 통계 화면이면 즉시 갱신
+  function fetchStats(){
+    if (!CONFIG.apiUrl) return Promise.resolve(null);
+    if (_statsInflight) return _statsInflight;
+    _statsInflight = jsonp({action:'stats'}).then(function(res){
+      _statsInflight = null;
+      if (res && res.ok){
+        lastStats = res;
+        try{ localStorage.setItem(STATS_CACHE_KEY, JSON.stringify(res)); }catch(e){}
+        // 통계 화면을 보고 있고 내용이 바뀐 경우에만 다시 그림(동일하면 깜빡임 없이 유지)
+        if ($('screenStats').classList.contains('active') && statsSig(res) !== _renderedSig) renderStats(res);
+      }
+      return res;
+    }).catch(function(){ _statsInflight = null; return null; });
+    return _statsInflight;
+  }
+
   function loadStats(){
     show('screenStats');
-    var body = $('statsBody');
-    $('totalGames').textContent = '';
     $('participantList').classList.remove('open');
-    body.innerHTML = '<div class="spinner">불러오는 중…</div>';
-    if (!CONFIG.apiUrl){ body.innerHTML = '<div class="spinner">apiUrl이 설정되지 않았습니다.</div>'; return; }
-    jsonp({action:'stats'}).then(function(res){
-      if (!res || !res.ok){ body.innerHTML = '<div class="spinner">통계 로드 실패</div>'; return; }
-      lastParticipants = res.participantNames || [];
-      $('totalGames').textContent = '참여 인원 ' + res.totalGames + '명';
-      if (!res.candidates.length){ body.innerHTML = '<div class="spinner">아직 집계된 결과가 없습니다.</div>'; return; }
-      // 올림픽 메달 방식: 우승(금)→준우승(은) 순위, 금·은 동점이면 공동 순위(다음 순위는 건너뜀)
-      var prevRank = 0, prevKey = null;
-      var rows = res.candidates.map(function(c, i){
-        var key = c.champion + '|' + c.runnerup;
-        var rank = (key === prevKey) ? prevRank : (i + 1);
-        prevRank = rank; prevKey = key;
-        var winRate = res.totalGames ? Math.round(c.champion/res.totalGames*100) : 0;
-        var rc = rank <= 3 ? ' rk' + rank : '';
-        var trCls = rank <= 3 ? ' class="top rrow' + rank + '"' : '';
-        return '<tr' + trCls + '><td class="rk' + rc + '">' + rank + '</td><td class="cand" data-name="' + esc(c.name) + '">' + esc(c.name) + '</td>'
-          + '<td class="num">'+c.champion+'</td><td class="num">'+c.runnerup+'</td><td class="num">'+winRate+'%</td></tr>';
-      }).join('');
-      body.innerHTML = '<table><thead><tr><th class="num">#</th><th>후보</th>'
-        + '<th class="num">🥇우승</th><th class="num">🥈준우승</th><th class="num">우승률</th></tr></thead><tbody>'
-        + rows + '</tbody></table>';
-      requestAnimationFrame(fitNameCells);   // 후보 이름 폭에 맞춰 글자 크기 조절(안 되면 줄바꿈)
-    }).catch(function(){ body.innerHTML = '<div class="spinner">통계 로드 실패 (네트워크/URL 확인)</div>'; });
+    if (!CONFIG.apiUrl){ $('statsBody').innerHTML = '<div class="spinner">apiUrl이 설정되지 않았습니다.</div>'; return; }
+    if (lastStats){ renderStats(lastStats); }   // 미리 받아둔/캐시된 데이터로 즉시 표시(대기 화면 최소화)
+    else { $('totalGames').textContent = ''; $('statsBody').innerHTML = '<div class="spinner">불러오는 중…</div>'; }
+    fetchStats();                               // 항상 백그라운드로 최신 갱신
   }
 
   function init(){
@@ -717,6 +752,14 @@
       if (!$('screenStats').classList.contains('active')) return;
       clearTimeout(_rt); _rt = setTimeout(fitNameCells, 150);
     });
+    // 접속 즉시 통계 준비: localStorage 캐시 로드(즉시 표시 가능) + 유휴 시 백그라운드 프리페치
+    try{ var _cs = localStorage.getItem(STATS_CACHE_KEY); if (_cs){ var _pj = JSON.parse(_cs); if (_pj && _pj.ok){ lastStats = _pj; lastParticipants = _pj.participantNames || []; } } }catch(e){}
+    if (CONFIG.apiUrl){
+      if (window.requestIdleCallback) requestIdleCallback(function(){ fetchStats(); }, {timeout:2000});
+      else setTimeout(fetchStats, 1200);
+    }
+    // 통계 버튼에 마우스 올리거나(hover) 누르기 직전(pointerdown) 미리 최신화 → 클릭 시 대기 최소화
+    ['btnStatsFromStart','btnStatsFromResult'].forEach(function(id){ var b=$(id); if(b){ ['pointerenter','focus','pointerdown'].forEach(function(ev){ b.addEventListener(ev, function(){ fetchStats(); }); }); } });
     refreshStartStatsBtn();
   }
   init();
