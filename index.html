@@ -116,12 +116,13 @@
   @keyframes crownPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 
   /* 카드 등급: 배지 텍스트(--rlabel) + 프레임 강화(--rframe, inset 이중테두리) + 결승 FINAL 리본 */
-  #screenGame{ --rlabel:""; --rframe:0 0 transparent; }
-  #screenGame[data-round="12강"]{ --rlabel:"12강"; --rframe:0 0 transparent; }
-  #screenGame[data-round="8강"]{ --rlabel:"8강"; --rframe:inset 0 0 0 1px rgba(79,208,230,.16); }
-  #screenGame[data-round="4강"]{ --rlabel:"4강"; --rframe:inset 0 0 0 1.5px rgba(95,224,163,.26), inset 0 0 0 5px rgba(95,224,163,.06); }
-  #screenGame[data-round="준결승"]{ --rlabel:"준결승"; --rframe:inset 0 0 0 2px rgba(181,140,255,.34), inset 0 0 0 6px rgba(181,140,255,.10); }
-  #screenGame[data-round="결승"]{ --rlabel:"👑 결승"; --rframe:inset 0 0 0 2.5px rgba(255,206,84,.55), inset 0 0 0 7px rgba(255,206,84,.14); }
+  /* --rshape = 카드 외형(실루엣). 라운드가 오를수록 위쪽이 점점 아치형으로 변함(사각→돔형 방패) */
+  #screenGame{ --rlabel:""; --rframe:0 0 transparent; --rshape:24px; }
+  #screenGame[data-round="12강"]{ --rlabel:"12강"; --rframe:0 0 transparent; --rshape:18px; }
+  #screenGame[data-round="8강"]{ --rlabel:"8강"; --rframe:inset 0 0 0 1px rgba(79,208,230,.16); --rshape:34px 34px 18px 18px; }
+  #screenGame[data-round="4강"]{ --rlabel:"4강"; --rframe:inset 0 0 0 1.5px rgba(95,224,163,.26), inset 0 0 0 5px rgba(95,224,163,.06); --rshape:52px 52px 18px 18px; }
+  #screenGame[data-round="준결승"]{ --rlabel:"준결승"; --rframe:inset 0 0 0 2px rgba(181,140,255,.34), inset 0 0 0 6px rgba(181,140,255,.10); --rshape:76px 76px 20px 20px; }
+  #screenGame[data-round="결승"]{ --rlabel:"👑 결승"; --rframe:inset 0 0 0 2.5px rgba(255,206,84,.55), inset 0 0 0 7px rgba(255,206,84,.14); --rshape:120px 120px 24px 24px; }
   .choice .cname{ padding-top:48px; position:relative; }  /* 배지 자리 확보 + 배지 앵커 */
   #screenGame[data-round="결승"] .choice::after{           /* 결승 FINAL 리본 */
     content:"FINAL"; display:block; position:absolute; left:0; right:0; bottom:0; z-index:3;
@@ -175,7 +176,7 @@
     position:relative; overflow:hidden; cursor:pointer; text-align:center;
     container-type:inline-size;
     background:var(--glass); backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
-    border:1px solid var(--glass-line); border-radius:var(--rrad,24px);
+    border:1px solid var(--glass-line); border-radius:var(--rshape, var(--rrad,24px));
     display:flex; flex-direction:column; min-height:320px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.28), var(--rframe,0 0 transparent), var(--rcard,var(--shadow));
     transition:transform .18s ease, border-color .18s ease, box-shadow .32s ease, border-radius .32s ease;
