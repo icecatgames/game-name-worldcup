@@ -83,21 +83,27 @@
   /* 라운드가 올라갈수록 글씨가 커지고 색이 바뀌며 카드가 업그레이드된다.
      #screenGame[data-round]에 라운드별 변수(색 --rc/--rc2, 글씨크기 --rsize, 카드 --rrad/--rbar*/--rcard/--rglow)를
      정의하면 아래 .round-big·.choice 가 그 변수를 함께 사용한다. */
+  /* 레어도 램프: 공통(회색) → 언커먼(초록) → 레어(파랑) → 에픽(보라) → 레전더리(금색).
+     각 티어는 색(--rc/--rc2) + 카드 면(--rface) + 테두리(--rborder/--rbw) + 상시 글로우(--rrest) + 호버 글로우(--rglow)를 함께 바꿔 한눈에 등급이 다름 */
   #screenGame{
-    --rc:var(--accent3); --rc2:var(--accent2);
-    --rsize:clamp(32px,5.4vw,50px); --rrad:24px; --rbarH:3px; --rbarO:.6;
-    --rcard:var(--shadow); --rglow:0 26px 60px rgba(124,140,255,.35); --rshadow:rgba(124,140,255,.4);
+    --rc:var(--accent3); --rc2:var(--accent2); --rsize:clamp(32px,5.4vw,50px); --rrad:24px;
+    --rface:linear-gradient(160deg,#141821,#0f131a); --rborder:linear-gradient(#4b5563,#4b5563); --rbw:1px;
+    --rrest:0 0 transparent; --rglow:0 26px 60px rgba(124,140,255,.35); --rshadow:rgba(124,140,255,.4);
   }
-  #screenGame[data-round="12강"]{ --rc:#7f9bff; --rc2:#bccbff; --rsize:clamp(30px,4.8vw,42px); --rrad:20px; --rbarH:3px; --rbarO:.5;
-    --rcard:var(--shadow); --rglow:0 22px 50px rgba(127,155,255,.32); --rshadow:rgba(127,155,255,.38); }
-  #screenGame[data-round="8강"]{ --rc:#4fd0e6; --rc2:#bdf3fb; --rsize:clamp(34px,5.6vw,50px); --rrad:22px; --rbarH:4px; --rbarO:.7;
-    --rcard:var(--shadow),0 0 0 1px rgba(79,208,230,.20); --rglow:0 24px 56px rgba(79,208,230,.40); --rshadow:rgba(79,208,230,.45); }
-  #screenGame[data-round="4강"]{ --rc:#5fe0a3; --rc2:#c9ffe6; --rsize:clamp(38px,6.4vw,58px); --rrad:24px; --rbarH:5px; --rbarO:.8;
-    --rcard:var(--shadow),0 0 0 1px rgba(95,224,163,.24),0 0 24px rgba(95,224,163,.12); --rglow:0 24px 58px rgba(95,224,163,.44); --rshadow:rgba(95,224,163,.5); }
-  #screenGame[data-round="준결승"]{ --rc:#b58cff; --rc2:#e6d8ff; --rsize:clamp(42px,7.2vw,66px); --rrad:26px; --rbarH:6px; --rbarO:.9;
-    --rcard:var(--shadow),0 0 0 1.5px rgba(181,140,255,.32),0 0 32px rgba(181,140,255,.18); --rglow:0 26px 60px rgba(181,140,255,.48); --rshadow:rgba(181,140,255,.55); }
-  #screenGame[data-round="결승"]{ --rc:#ffce54; --rc2:#fff0bf; --rsize:clamp(48px,8.4vw,78px); --rrad:28px; --rbarH:7px; --rbarO:1;
-    --rcard:var(--shadow),0 0 0 2px rgba(255,206,84,.44),0 0 46px rgba(255,206,84,.26); --rglow:0 28px 66px rgba(255,206,84,.52); --rshadow:rgba(255,206,84,.6); }
+  #screenGame[data-round="12강"]{ --rc:#9ca3af; --rc2:#cbd2dd; --rsize:clamp(30px,4.8vw,42px);
+    --rface:linear-gradient(160deg,#171b23,#0f1219); --rborder:linear-gradient(#5b6472,#3a4048); --rbw:1px;
+    --rrest:0 0 transparent; --rglow:0 20px 44px rgba(140,150,170,.26); --rshadow:rgba(170,180,200,.35); }
+  #screenGame[data-round="8강"]{ --rc:#4ade80; --rc2:#b7f7cf; --rsize:clamp(34px,5.6vw,50px);
+    --rface:linear-gradient(160deg,#0f1712,#0b110c); --rborder:linear-gradient(145deg,#7ff0a8,#0b0e13 46%,#1f7a44); --rbw:2px;
+    --rrest:0 0 20px rgba(34,197,94,.22); --rglow:0 24px 54px rgba(34,197,94,.42); --rshadow:rgba(74,222,128,.5); }
+  #screenGame[data-round="4강"]{ --rc:#38bdf8; --rc2:#bfe6ff; --rsize:clamp(38px,6.4vw,58px);
+    --rface:linear-gradient(160deg,#0e1420,#0a0f18); --rborder:linear-gradient(145deg,#8fd8ff,#0b0e13 46%,#1e4fd1); --rbw:2px;
+    --rrest:0 0 26px rgba(59,130,246,.3); --rglow:0 24px 58px rgba(56,189,248,.46); --rshadow:rgba(56,189,248,.5); }
+  #screenGame[data-round="준결승"]{ --rc:#c084fc; --rc2:#e6d0ff; --rsize:clamp(42px,7.2vw,66px);
+    --rface:linear-gradient(160deg,#16101f,#100b18); --rbw:2px;
+    --rrest:0 0 32px rgba(168,85,247,.36); --rglow:0 26px 62px rgba(192,132,252,.5); --rshadow:rgba(192,132,252,.55); }
+  #screenGame[data-round="결승"]{ --rc:#ffd35c; --rc2:#fff0bf; --rsize:clamp(48px,8.4vw,78px); --rbw:2.5px;
+    --rrest:0 0 40px rgba(251,191,36,.34), 0 0 82px rgba(255,122,24,.2); --rglow:0 28px 70px rgba(255,206,84,.55); --rshadow:rgba(255,206,84,.6); }
 
   .round-big{
     font-family:"Gothic A1","Pretendard","Malgun Gothic",sans-serif;
@@ -118,14 +124,14 @@
   /* 카드 등급: 배지 텍스트(--rlabel) + 프레임 강화(--rframe, inset 이중테두리) + 결승 FINAL 리본 */
   /* --rshape = 카드 외형(실루엣). 라운드가 오를수록 위쪽이 점점 아치형으로 변함(사각→돔형 방패) */
   #screenGame{ --rlabel:""; --rframe:0 0 transparent; --rshape:24px; }
-  #screenGame[data-round="12강"]{ --rlabel:"12강"; --rframe:0 0 transparent; --rshape:18px; }
-  #screenGame[data-round="8강"]{ --rlabel:"8강"; --rframe:inset 0 0 0 1px rgba(79,208,230,.16); --rshape:34px 34px 18px 18px; }
-  #screenGame[data-round="4강"]{ --rlabel:"4강"; --rframe:inset 0 0 0 1.5px rgba(95,224,163,.26), inset 0 0 0 5px rgba(95,224,163,.06); --rshape:52px 52px 18px 18px; }
-  #screenGame[data-round="준결승"]{ --rlabel:"준결승"; --rframe:inset 0 0 0 2px rgba(181,140,255,.34), inset 0 0 0 6px rgba(181,140,255,.10); --rshape:76px 76px 20px 20px; }
-  #screenGame[data-round="결승"]{ --rlabel:"👑 결승"; --rframe:inset 0 0 0 2.5px rgba(255,206,84,.55), inset 0 0 0 7px rgba(255,206,84,.14); --rshape:120px 120px 24px 24px; }
+  #screenGame[data-round="12강"]{ --rlabel:"COMMON · 12강"; --rframe:0 0 transparent; --rshape:14px; }
+  #screenGame[data-round="8강"]{ --rlabel:"UNCOMMON · 8강"; --rframe:inset 0 0 0 1px rgba(74,222,128,.18); --rshape:30px 30px 16px 16px; }
+  #screenGame[data-round="4강"]{ --rlabel:"RARE · 4강"; --rframe:inset 0 0 0 1px rgba(56,189,248,.24), inset 0 0 0 5px rgba(56,189,248,.07); --rshape:52px 52px 18px 18px; }
+  #screenGame[data-round="준결승"]{ --rlabel:"EPIC · 준결승"; --rframe:inset 0 0 0 1.5px rgba(192,132,252,.3), inset 0 0 0 6px rgba(192,132,252,.1); --rshape:76px 76px 20px 20px; }
+  #screenGame[data-round="결승"]{ --rlabel:"👑 LEGENDARY · 결승"; --rframe:inset 0 0 0 2px rgba(255,206,84,.42), inset 0 0 0 7px rgba(255,206,84,.13); --rshape:120px 120px 24px 24px; }
   .choice .cname{ padding-top:48px; position:relative; }  /* 배지 자리 확보 + 배지 앵커 */
   #screenGame[data-round="결승"] .choice::after{           /* 결승 FINAL 리본 */
-    content:"FINAL"; display:block; position:absolute; left:0; right:0; bottom:0; z-index:3;
+    content:"FINAL"; display:block; position:absolute; left:0; right:0; bottom:0; z-index:4;
     text-align:center; font-family:"Poppins",sans-serif; font-weight:800; letter-spacing:4px; font-size:12px;
     color:#5a3d00; padding:7px 0;
     background:linear-gradient(92deg,#ffd35c,#fff2c8 50%,#ffce54);
@@ -133,14 +139,20 @@
   }
   #screenGame[data-round="결승"] .choice .cdesc{ padding-bottom:46px; }   /* 리본 자리 */
 
-  /* 결승 = 챔피언십: 회전하는 금색 conic 보더 빔 + 금박 포일 타이틀 */
+  /* 준결승(에픽) = 회전하는 보라 conic 보더 */
+  #screenGame[data-round="준결승"] .choice{
+    background:
+      var(--rface) padding-box,
+      conic-gradient(from var(--angle), #7c3aed, #c084fc, #ffffffcc, #c084fc, #7c3aed) border-box;
+    animation:spinBorder 9s linear infinite;
+  }
+  /* 결승(레전더리) = 회전하는 금색 conic 보더 빔 + 금박 포일 타이틀 */
   #screenGame[data-round="결승"] .choice{
     border:2.5px solid transparent;
     background:
       linear-gradient(160deg,#1c1608,#241a05) padding-box,
       conic-gradient(from var(--angle), #ffd35c, #fff3c4, #b8860b, #ffe9a8, #ffce54, #ffd35c) border-box;
-    backdrop-filter:none; -webkit-backdrop-filter:none;
-    animation:spinBorder 6s linear infinite;
+    animation:spinBorder 5s linear infinite;
   }
   #screenGame[data-round="결승"] .choice .cname{ background:rgba(255,214,92,.05); border-bottom-color:rgba(255,206,84,.28); }
   #screenGame[data-round="결승"] .cname-main{
@@ -153,7 +165,8 @@
   @keyframes spinBorder{ to{ --angle:360deg; } }
   @keyframes foilShine{ to{ background-position:250% 0; } }
   @media (prefers-reduced-motion: reduce){
-    #screenGame[data-round="결승"] .choice, #screenGame[data-round="결승"] .cname-main{ animation:none; }
+    #screenGame[data-round="준결승"] .choice, #screenGame[data-round="결승"] .choice,
+    #screenGame[data-round="결승"] .cname-main, .choice .cfx::before, .choice .cfx::after{ animation:none; }
   }
   .round-count{
     font-size:clamp(16px,1.7vw,20px); font-weight:800; color:#cdd6f5; letter-spacing:2.5px;
@@ -175,12 +188,25 @@
   .choice{
     position:relative; overflow:hidden; cursor:pointer; text-align:center;
     container-type:inline-size;
-    background:var(--glass); backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
-    border:1px solid var(--glass-line); border-radius:var(--rshape, var(--rrad,24px));
+    background:var(--rface,linear-gradient(160deg,#141821,#0f131a)) padding-box, var(--rborder,linear-gradient(#4b5563,#4b5563)) border-box;
+    border:var(--rbw,1px) solid transparent; border-radius:var(--rshape, var(--rrad,24px));
     display:flex; flex-direction:column; min-height:320px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.28), var(--rframe,0 0 transparent), var(--rcard,var(--shadow));
-    transition:transform .18s ease, border-color .18s ease, box-shadow .32s ease, border-radius .32s ease;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(0,0,0,.5), var(--rframe,0 0 transparent), var(--rrest,0 0 transparent), 0 14px 34px rgba(0,0,0,.5);
+    transition:transform .18s ease, box-shadow .32s ease, border-radius .32s ease;
   }
+  /* 등급 이펙트 오버레이(그레인 + 4강 샤인 스윕 + 에픽/레전더리 홀로) */
+  .choice .cfx{ position:absolute; inset:0; z-index:1; pointer-events:none; border-radius:inherit; overflow:hidden;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity:.05; mix-blend-mode:overlay; }
+  #screenGame[data-round="결승"] .choice .cfx{ opacity:.09; }
+  #screenGame[data-round="4강"] .choice .cfx::before{ content:""; position:absolute; top:-40%; left:-60%; width:40%; height:180%;
+    transform:rotate(22deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent); animation:cShine 5s ease-in-out infinite; }
+  #screenGame[data-round="준결승"] .choice:hover .cfx::after,
+  #screenGame[data-round="결승"] .choice .cfx::after{ content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(115deg,#ff0080 0 8%,#00e0ff 12%,#7cff00 18%,#ff0080 24%);
+    background-size:300% 300%; mix-blend-mode:color-dodge; opacity:.16; animation:cHolo 7s linear infinite; }
+  @keyframes cShine{0%,60%{left:-60%}100%{left:130%}}
+  @keyframes cHolo{to{background-position:300% 0}}
   .choice::before{ /* 커서 추적 스포트라이트 (hover) */
     content:""; position:absolute; inset:0; border-radius:inherit; z-index:2; pointer-events:none;
     background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.10), transparent 60%);
@@ -190,20 +216,20 @@
   .choice::after{ content:""; display:none; }   /* 기본 없음(결승에서 FINAL 리본으로 사용) */
   .choice .cname::before{ /* 라운드 등급 배지 (칩) */
     content:var(--rlabel,"");
-    position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:4;
-    font-family:"Gothic A1","Malgun Gothic",sans-serif; font-weight:800; font-size:12px; letter-spacing:.4px;
+    position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:5;
+    font-family:"Gothic A1","Malgun Gothic",sans-serif; font-weight:800; font-size:11px; letter-spacing:.4px;
     color:#0b1020; white-space:nowrap;
     padding:4px 13px; border-radius:99px;
     background:linear-gradient(92deg,var(--rc),var(--rc2));
     box-shadow:0 5px 14px var(--rshadow);
   }
-  .choice:hover{transform:translateY(-6px); border-color:var(--rc); box-shadow:inset 0 1px 0 rgba(255,255,255,.3), var(--rframe,0 0 transparent), var(--rcard,var(--shadow)), var(--rglow)}
+  .choice:hover{transform:translateY(-6px); box-shadow:inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(0,0,0,.5), var(--rframe,0 0 transparent), var(--rrest,0 0 transparent), var(--rglow), 0 20px 44px rgba(0,0,0,.55)}
   .choice:active{transform:translateY(-2px)}
   /* 제목 영역 */
   .choice .cname{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center;
-    padding:34px 22px; min-height:176px;
-    background:var(--glass-strong); border-bottom:1px solid var(--glass-line);
+    padding:48px 22px 30px; min-height:176px; position:relative; z-index:3;
+    background:rgba(255,255,255,.045); border-bottom:1px solid rgba(255,255,255,.09);
   }
   /* 제목: 설명과 다른 전용 폰트 + 큰 크기 + 그라데이션 컬러.
      글자 크기를 카드 폭(cqi)에 연동 → 어떤 화면에서도 한 줄에 딱 맞음 */
@@ -211,17 +237,17 @@
     font-family:"Poppins","Pretendard","Malgun Gothic",sans-serif;
     font-size:clamp(22px,7.6cqi,46px); font-weight:800; letter-spacing:-.5px; line-height:1.05;
     white-space:nowrap;
-    background:linear-gradient(92deg,#b7c0ff,#ffffff 46%,#ffbcdf);
+    background:linear-gradient(92deg,var(--rc,#b7c0ff),#ffffff 50%,var(--rc2,#ffbcdf));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .cname-sub{
     font-family:"Gothic A1","Pretendard","Malgun Gothic",sans-serif;
-    font-size:clamp(16px,4.7cqi,28px); font-weight:800; letter-spacing:0; color:#a5e5ff;
+    font-size:clamp(16px,4.7cqi,28px); font-weight:800; letter-spacing:0; color:var(--rc2,#a5e5ff);
     white-space:nowrap;
   }
   /* 설명 영역 */
   .choice .cdesc{
-    flex:1; display:flex; align-items:center; justify-content:center;
+    flex:1; display:flex; align-items:center; justify-content:center; position:relative; z-index:3;
     padding:30px 34px; font-size:clamp(15px,1.55vw,18.5px); color:#c2cbe6; line-height:1.75;
     white-space:pre-wrap; word-break:keep-all;
   }
@@ -346,9 +372,9 @@
     <div class="progress-wrap"><span class="progress" id="progressLabel"></span></div>
     <div class="bar"><i id="progressBar" style="width:0%"></i></div>
     <div class="match">
-      <div class="choice" id="choiceA"><div class="cname"></div><div class="cdesc"></div></div>
+      <div class="choice" id="choiceA"><span class="cfx"></span><div class="cname"></div><div class="cdesc"></div></div>
       <div class="vs"><span>VS</span></div>
-      <div class="choice" id="choiceB"><div class="cname"></div><div class="cdesc"></div></div>
+      <div class="choice" id="choiceB"><span class="cfx"></span><div class="cname"></div><div class="cdesc"></div></div>
     </div>
   </section>
 
